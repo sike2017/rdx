@@ -1,11 +1,11 @@
 #pragma once
-
 #include "math/monolith_math.h"
+#include "display/Painter.h"
 
 class Color : public Vector4f {
 public:
 	Color(float _r, float _g, float _b) { e[0] = _r; e[1] = _g; e[2] = _b; }
-	Color(const Vector4f& v): Vector4f(v) {}
+	Color(const Vector4f& v) : Vector4f(v) {}
 	Color() {}
 	~Color() {}
 
