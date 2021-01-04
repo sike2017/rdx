@@ -1,4 +1,5 @@
 #pragma once
+#include <thread>
 #include "rdx_random.h"
 #include "display/WindowDisplayer.h"
 #include "color.h"
@@ -8,6 +9,7 @@
 #include "hitablelist.h"
 #include "camera.h"
 #include "sphere.h"
+#include "scenes.h"
 
 class RDXWindow : public WindowDisplayer {
 public:
@@ -19,32 +21,58 @@ public:
 
 protected:
 	virtual RENDER_STATUS render() override {
-		rdx_srand(time(NULL));
-		Vector3f lower_left_corner(-2.0, -1.0, -1.0);
-		Vector3f horizontal(4.0, 0.0, 0.0);
-		Vector3f vertical(0.0, 2.0, 0.0);
-		Vector3f origin(0.0, 0.0, 0.0);
-		hitable* list[4];
-		list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
-		list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
-		list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2), 0.3));
-		list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5));
-		hitable* world = new hitable_list(list, 4);
-		camera cam;
-		for (int x = 0; x < width(); x++) {
-			for (int y = 0; y < height(); y++) {
-				Color col(0, 0, 0);
-				for (int s = 0; s < ns; s++) {
-					float u = static_cast<float>(x + rdx_rand()) / static_cast<float>(width());
-					float v = static_cast<float>(y + rdx_rand()) / static_cast<float>(height());
-					//setPixel(x, y, RGBA(0, 162, 232));
-					Ray r = cam.get_ray(u, v);
-					col += color(r, world, 0);
+		hitable* world = random_scene();
+		Vector3f lookfrom(13, 2, 3);
+		Vector3f lookat(0, 0, 0);
+		//hitable* list[4];
+		//list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
+		//list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
+		//list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2), 0.3));
+		//list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5));
+		//list[3] = new sphere(Vector3f(-1, 0, -1), -0.45, new dielectric(1.5));
+		//hitable* world = new hitable_list(list, 4);
+		camera cam(lookfrom, lookat, Vector3f(0, 1, 0), 20, static_cast<float>(width()) / static_cast<float>(height()));
+		std::vector<std::thread> workers;
+		int cpuNums = 6;
+		std::vector<int> pixel_nums(cpuNums, 0);
+		float rate = 0.f;
+		unsigned long long screen_size = width() * height();
+		for (int id = 0; id < cpuNums; id++) {
+			workers.push_back(std::thread([=, &pixel_nums, &rate]() {
+				int x, y;
+				for (int index = id; index < screen_size; index += cpuNums) {
+					x = index % width();
+					y = index / width();
+					Color col(0, 0, 0);
+					for (int s = 0; s < ns; s++) {
+						float u = static_cast<float>(x + rdx_rand()) / static_cast<float>(width());
+						float v = static_cast<float>(y + rdx_rand()) / static_cast<float>(height());
+						//setPixel(x, y, RGBA(0, 162, 232));
+						Ray r = cam.get_ray(u, v);
+						col += color(r, world, 0);
+					}
+					col /= static_cast<float>(ns);
+					col = Color(sqrt(col.r()), sqrt(col.g()), sqrt(col.b()));
+					setPixel(x, y, to_rgba(col));
+					pixel_nums[id]++;
 				}
-				col /= static_cast<float>(ns);
-				col = Color(sqrt(col.r()), sqrt(col.g()), sqrt(col.b()));
-				setPixel(x, y, to_rgba(col));
+			}));
+		}
+		while (true) {
+			unsigned long long sum = 0;
+			for (unsigned long long pixel_num : pixel_nums) {
+				sum += pixel_num;
 			}
+			rate = (static_cast<float>(sum) / static_cast<float>(screen_size)) * 100;
+			if (rate >= 100.f) {			
+				rlog.print("%%100.00\n");
+				for (auto& worker : workers) {
+					worker.join();
+				}
+				break;
+			}
+			rlog.print("%%%.2f\n", rate);
+			Sleep(500);
 		}
 
 		rlog << "done\n";

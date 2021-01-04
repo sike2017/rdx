@@ -4,8 +4,7 @@
 #include "math/monolith_math.h"
 
 float rdx_rand() {
-	float r = rand() / static_cast<double>(RAND_MAX);
-	return r;
+	return rand() % 10001 / 10000.0;
 }
 
 void rdx_srand(unsigned int seed) {
@@ -22,4 +21,3 @@ Vector3f random_in_unit_sphere() {
 	} while (p.squared_length() >= 1.0);
 	return p;
 }
-

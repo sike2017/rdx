@@ -286,3 +286,7 @@ namespace util {
 
 	bool solveQuadratic(const float& a, const float& b, const float& c, float* x0, float* x1);
 }
+
+#ifndef M_PI
+#define M_PI 3.1415926
+#endif

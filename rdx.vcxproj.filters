@@ -70,6 +70,9 @@
     <ClInclude Include="core\rdx_random.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="core\scenes.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="display\image_png.cpp">

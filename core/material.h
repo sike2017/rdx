@@ -19,6 +19,12 @@ bool refract(const Vector3f& v, const Vector3f& n, float ni_over_nt, Vector3f* r
 	}
 }
 
+float schlick(float cosine, float ref_idx) {
+	float r0 = (1 - ref_idx) / (1 + ref_idx);
+	r0 = r0 * r0;
+	return r0 + (1 - r0) * pow((1 - cosine), 5);
+}
+
 class material {
 public:
 	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const = 0;
@@ -59,20 +65,31 @@ public:
 		float ni_over_nt;
 		*attenuation = Vector3f(1.0, 1.0, 1.0);
 		Vector3f refracted;
+		float reflect_prob;
+		float cosine;
 		if (dot(r_in.direction(), rec.normal) > 0) {
 			outward_normal = -rec.normal;
 			ni_over_nt = ref_idx;
+			cosine = ref_idx * dot(r_in.direction(), rec.normal) / r_in.direction().length();
 		}
 		else {
 			outward_normal = rec.normal;
 			ni_over_nt = 1.0 / ref_idx;
+			cosine = -dot(r_in.direction(), rec.normal) / r_in.direction().length();
 		}
 		if (refract(r_in.direction(), outward_normal, ni_over_nt, &refracted)) {
-			*scattered = Ray(rec.p, refracted);
+			reflect_prob = schlick(cosine, ref_idx);
 		}
 		else {
 			*scattered = Ray(rec.p, reflected);
-			return false;
+			reflect_prob = 1.0;
+		}
+		rdx_srand(time(NULL));
+		if (rdx_rand() < reflect_prob) {
+			*scattered = Ray(rec.p, reflected);
+		}
+		else {
+			*scattered = Ray(rec.p, refracted);
 		}
 		return true;
 	}
