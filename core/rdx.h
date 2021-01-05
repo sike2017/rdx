@@ -20,7 +20,7 @@ public:
 	~RDXWindow() {}
 
 protected:
-	virtual RENDER_STATUS render() override {
+	virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override {
 		hitable* world = random_scene();
 		Vector3f lookfrom(13, 2, 3);
 		Vector3f lookat(0, 0, 0);
@@ -41,6 +41,9 @@ protected:
 			workers.push_back(std::thread([=, &pixel_nums, &rate]() {
 				int x, y;
 				for (int index = id; index < screen_size; index += cpuNums) {
+					if (*renderCommand == RENDER_COMMAND::STOP) {
+						return;
+					}
 					x = index % width();
 					y = index / width();
 					Color col(0, 0, 0);
@@ -59,6 +62,12 @@ protected:
 			}));
 		}
 		while (true) {
+			if (*renderCommand == RENDER_COMMAND::STOP) {
+				for (auto& worker : workers) {
+					worker.join();
+				}
+				return RENDER_STATUS::CALL_STOP;
+			}
 			unsigned long long sum = 0;
 			for (unsigned long long pixel_num : pixel_nums) {
 				sum += pixel_num;

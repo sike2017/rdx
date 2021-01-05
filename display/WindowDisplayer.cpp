@@ -5,7 +5,8 @@ int display::screen_keys[512];
 
 WindowDisplayer::WindowDisplayer(HINSTANCE thInstance, HINSTANCE thPrevInstance, LPSTR tszCmdLine, int tiCmdShow, int twidth, int theight, const wchar_t* twindowName) :
 	hInstance(thInstance), hPrevInstance(thPrevInstance), szCmdLine(tszCmdLine), iCmdShow(tiCmdShow), _width(twidth), _height(theight), windowName(twindowName), rb(twidth, theight), 
-	colorIndex(0), renderStatus(RENDER_STATUS::CALL_NEXTTIME)
+	colorIndex(0), renderStatus(RENDER_STATUS::CALL_NEXTTIME), 
+	renderCommand(RENDER_COMMAND::RUNNING)
 {
 	painter.SetFrameBitmapBuffer(&rb);
 }
@@ -74,6 +75,9 @@ int WindowDisplayer::InitWindow()
 
 	ShowWindow(hwnd, iCmdShow);
 	UpdateWindow(hwnd);
+	std::thread render_thread([this]() {
+		renderStatus = render(&renderCommand);
+	});
 
 	while (msg.message != WM_QUIT)
 	{
@@ -85,9 +89,9 @@ int WindowDisplayer::InitWindow()
 		}
 		else {
 			switch (renderStatus) {
-			case RENDER_STATUS::CALL_NEXTTIME:
-				renderStatus = render();
-				break;
+			//case RENDER_STATUS::CALL_NEXTTIME:
+			//	renderStatus = render();
+			//	break;
 			case RENDER_STATUS::CALL_STOP:
 				break;
 			case RENDER_STATUS::CALL_STOP_SAVE_IMAGE:
@@ -95,9 +99,12 @@ int WindowDisplayer::InitWindow()
 				renderStatus = RENDER_STATUS::CALL_STOP;
 				break;
 			}
+			update();
 			keyboardEvent(display::screen_keys);
 		}
 	}
+	renderCommand = RENDER_COMMAND::STOP;
+	render_thread.join();
 	return msg.wParam;
 }
 

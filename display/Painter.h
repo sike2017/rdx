@@ -33,7 +33,7 @@ RGBA operator*(const float& left, const RGBA& right);
 class RenderBitmap
 {
 public:
-	RenderBitmap() = delete;
+	RenderBitmap() {}
 	RenderBitmap(int width, int height);
 	~RenderBitmap();
 

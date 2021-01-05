@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
+#include <thread>
 #include "Painter.h"
-
 #include "log/log.h"
 
 extern Painter painter;
@@ -38,9 +38,15 @@ protected:
 		CALL_STOP_SAVE_IMAGE
 	};
 
+	enum class RENDER_COMMAND
+	{
+		RUNNING,
+		STOP
+	};
+
 	RENDER_STATUS renderStatus;
 
-	virtual RENDER_STATUS render() {
+	virtual RENDER_STATUS render(RENDER_COMMAND *renderCommand) {
 		rlog.print("virtual render\n");
 
 		RGBA color0(0, 162, 232, 0);
@@ -57,6 +63,9 @@ protected:
 			}
 			else {
 				setPixel(x, y, color1);
+			}
+			if (*renderCommand == RENDER_COMMAND::STOP) {
+				return RENDER_STATUS::CALL_STOP;
 			}
 		}
 
@@ -75,6 +84,6 @@ private:
 	std::wstring windowName;
 	
 	RenderBitmap rb;
-
+	RENDER_COMMAND renderCommand;
 	int InitWindow();
 };
