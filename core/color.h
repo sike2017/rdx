@@ -13,3 +13,6 @@ public:
 	float g() const { return e[1]; }
 	float b() const { return e[2]; }
 };
+float range_float(float f, float fmin, float fmax) {
+	return f < fmin ? fmin: f > fmax ? fmax : f;
+}

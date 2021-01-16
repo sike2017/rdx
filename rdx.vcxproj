@@ -141,16 +141,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="core\bvh.h" />
     <ClInclude Include="core\camera.h" />
     <ClInclude Include="core\color.h" />
     <ClInclude Include="core\hitable.h" />
     <ClInclude Include="core\hitablelist.h" />
     <ClInclude Include="core\material.h" />
+    <ClInclude Include="core\mesh.h" />
     <ClInclude Include="core\ray.h" />
     <ClInclude Include="core\rdx.h" />
     <ClInclude Include="core\rdx_random.h" />
+    <ClInclude Include="core\rz_types.h" />
     <ClInclude Include="core\scenes.h" />
     <ClInclude Include="core\sphere.h" />
+    <ClInclude Include="core\texture.h" />
+    <ClInclude Include="core\transformation.h" />
     <ClInclude Include="core\triangle.h" />
     <ClInclude Include="display\image_png.h" />
     <ClInclude Include="display\Painter.h" />

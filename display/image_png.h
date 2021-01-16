@@ -14,6 +14,8 @@ namespace image_png {
 
 	const int CHANNELS_NUMBER = 4;
 
+	image_t load_image(const char* filename);
+
 	// create image, your must use free_image function to free image when you are done with the image.
 	image_t create_image(int width, int height);
 

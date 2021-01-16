@@ -1,6 +1,7 @@
 #pragma once
 #include "hitable.h"
 #include "rdx_random.h"
+#include "texture.h"
 
 Vector3f reflect(const Vector3f& v, const Vector3f& n) {
 	return v - 2 * dot(v, n) * n;
@@ -27,20 +28,28 @@ float schlick(float cosine, float ref_idx) {
 
 class material {
 public:
-	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const = 0;
+	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const { return false; }
+	virtual Color emitted(float u, float v, const Vector3f& p) const {
+		return Color(0, 0, 0);
+	}
+
+	float ns, ni, d, illum;
+	Vector3f ka, kd, ks, ke;
+
+	float rdx_light;
 };
 
 class lambertian : public material {
 public:
-	lambertian(const Vector3f& a) : albedo(a) {}
+	lambertian(texture* a) : albedo(a) {}
 	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
 		Vector3f target = rec.p + rec.normal + random_in_unit_sphere();
 		*scattered = Ray(rec.p, target - rec.p);
-		*attenuation = albedo;
+		*attenuation = albedo->value(rec.u, rec.v, rec.p);
 		return true;
 	}
 
-	Vector3f albedo;
+	texture* albedo;
 };
 
 class metal : public material {
@@ -95,4 +104,14 @@ public:
 	}
 
 	float ref_idx;
+};
+
+class diffuse_light : public material {
+public:
+	diffuse_light(texture* a) : emit(a) {}
+	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const { return false; }
+	virtual Color emitted(float u, float v, const Vector3f& p) const override {
+		return emit->value(u, v, p);
+	}
+	texture* emit;
 };

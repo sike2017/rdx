@@ -6,10 +6,14 @@
 #include <map>
 #include "core/mesh.h"
 
+typedef std::pair<std::string, material*> mtl_pair;
+typedef std::map<std::string, material*> mtl_map;
+
 class FileParser
 {
 public:
-	virtual bool parse(const std::string& path, Mesh** _mesh) = 0;
+	virtual bool parse(const std::string& path, Mesh** _mesh) { return false; }
+	virtual bool parse(const std::string& path, mtl_map** _list) { return false; }
 
 protected:
 	inline bool openFile(const std::string& filename) {
@@ -24,17 +28,144 @@ protected:
 		moduleFile.close();
 	}
 
+	template<typename T>
+	inline T convertStringToNumber(const std::string& s) {
+		std::istringstream istream(s);
+		T r;
+		istream >> r;
+		return r;
+	}
+
 	std::ifstream moduleFile;
+};
+
+class MtlParser : public FileParser
+{
+public:
+	MtlParser() { mat_ptr = nullptr; }
+	~MtlParser() {}
+
+	virtual bool parse(const std::string& path, mtl_map** _list) {
+		if (!openFile(path)) {
+			return false;
+		}
+		
+		mtl_map* list = new mtl_map;
+		*_list = list;
+		std::string strLine;
+		while (std::getline(moduleFile, strLine)) {
+			line_parse(strLine, list);
+		}
+	}
+
+private:
+	void divid_space(const std::string& line, base_list<std::string>* list) {
+		std::string temp;
+		int index = 0;
+		for (auto& letter : line) {
+			index++;
+			if (letter != ' ' && index != line.length()) {
+				temp.push_back(letter);
+			}
+			else {
+				if (index == line.length()) {
+					temp.push_back(letter);
+				}
+				if (!temp.empty()) {
+					list->push_back(temp);
+					temp.clear();
+				}
+				continue;
+			}
+		}
+	}
+
+	bool line_parse(const std::string& line, mtl_map* pout) {
+		bool rdx_type = false;
+		int index = 0;
+		base_list<std::string> list;
+		divid_space(line, &list);
+		size_t size = list.size();
+		float rdx_light;
+		while (index < size) {
+			if (list[index] == "#") {
+				if (index > size - 4) {
+					break;
+				}
+				if (list[index + 1] != "__rdx__") {
+					break;
+				}
+				std::pair<std::string, material*> pair;
+				if (list[index + 2] == "light") {
+					if (pout->size() != 0) {
+						delete mat_ptr;
+					}
+					rdx_light = convertStringToNumber<float>(list[index + 3]);
+					mat_ptr = new diffuse_light(new solid_texture(Color(1.0, 1.0, 1.0) * rdx_light));
+					mat_ptr->rdx_light = rdx_light;
+					pout->find(mat_name)->second = mat_ptr;
+					return true;
+				}
+			}
+			else if (list[index] == "newmtl") {
+				mat_ptr = new lambertian(new solid_texture(Color(0.7, 0.7, 0.7)));
+				pout->insert(mtl_pair(list[index + 1], mat_ptr));
+				mat_name = list[index + 1];
+			}
+			else if (list[index] == "Ns") {
+				mat_ptr->ns = convertStringToNumber<float>(list[index + 1]);
+				return true;
+			}
+			else if (list[index] == "Ka") {
+				mat_ptr->ka[0] = convertStringToNumber<float>(list[index + 1]);
+				mat_ptr->ka[1] = convertStringToNumber<float>(list[index + 2]);
+				mat_ptr->ka[2] = convertStringToNumber<float>(list[index + 3]);
+				return true;
+			}
+			else if (list[index] == "Ks") {
+				mat_ptr->ks[0] = convertStringToNumber<float>(list[index + 1]);
+				mat_ptr->ks[1] = convertStringToNumber<float>(list[index + 2]);
+				mat_ptr->ks[2] = convertStringToNumber<float>(list[index + 3]);
+				return true;
+			}
+			else if (list[index] == "Ke") {
+				mat_ptr->ke[0] = convertStringToNumber<float>(list[index + 1]);
+				mat_ptr->ke[1] = convertStringToNumber<float>(list[index + 2]);
+				mat_ptr->ke[2] = convertStringToNumber<float>(list[index + 3]);
+				return true;
+			}
+			else if (list[index] == "Ni") {
+				mat_ptr->ni = convertStringToNumber<float>(list[index + 1]);
+				return true;
+			}
+			else if (list[index] == "d") {
+				mat_ptr->d = convertStringToNumber<float>(list[index + 1]);
+				return true;
+			}
+			else if (list[index] == "illum") {
+				mat_ptr->illum = convertStringToNumber<float>(list[index + 1]);
+				return true;
+			}
+			index++;
+		}
+		return false;
+	}
+
+	material* mat_ptr;
+	std::string mat_name;
 };
 
 class ObjParser : public FileParser
 {
 public:
-	ObjParser() : FileParser() {
+	ObjParser() {
 		table.insert(std::pair<std::string, ParserInstruction>("v", ParserInstruction::v));
 		table.insert(std::pair<std::string, ParserInstruction>("f", ParserInstruction::f));
 		table.insert(std::pair<std::string, ParserInstruction>("vt", ParserInstruction::vt));
 		table.insert(std::pair<std::string, ParserInstruction>("vn", ParserInstruction::vn));
+		table.insert(std::pair<std::string, ParserInstruction>("mtllib", ParserInstruction::mtllib));
+		table.insert(std::pair<std::string, ParserInstruction>("usemtl", ParserInstruction::usemtl));
+		table.insert(std::pair<std::string, ParserInstruction>("#", ParserInstruction::comment));
 	}
 	~ObjParser() {}
 
@@ -42,19 +173,24 @@ public:
 		v,
 		f,
 		vt,
-		vn
+		vn,
+		mtllib,
+		usemtl,
+		comment
 	};
 
-	virtual bool parse(const std::string& filename, Mesh** _mesh) {
-		if (!openFile(filename)) {
+	virtual bool parse(const std::string& _filename, Mesh** _mesh) {
+		objPath = _filename;
+		if (!openFile(_filename)) {
 			return false;
 		}
 		std::string lineStr;
-		Mesh* mesh = new Mesh;
-		int vnIndex = 0;
+		Mesh* mesh = new Mesh(new lambertian(new solid_texture(Color(0.4, 0.2, 0.1))));
+		mat_ptr = mesh->get_material();
 		std::vector<Vertex*>& vArray = mesh->vArray;
 		std::vector<Point2f*>& vtArray = mesh->vtArray;
 		std::vector<Vector3f*>& vnArray = mesh->vnArray;
+		std::vector<float> v_vector;
 		while (std::getline(moduleFile, lineStr)) {
 			std::pair<ParserInstruction, std::vector<float>> lineResult;
 			if (lineParse(lineStr, &lineResult)) {
@@ -63,81 +199,57 @@ public:
 					vArray.push_back(vertex);
 				}
 				else if (lineResult.first == ParserInstruction::f) {
-					int v0 = -1;
-					int v1 = -1;
-					int v2 = -1;
-					int v3 = -1;
-					int vt0 = -1;
-					int vt1 = -1;
-					int vt2 = -1;
-					int vt3 = -1;
-					int vn0 = -1;
-					int vn1 = -1;
-					int vn2 = -1;
-					int vn3 = -1;
-					bool isFourVertex = true;
+					int vertex_n = 3;
 					switch (lineResult.second.size()) {
-					case 12:
-						// f v/vt/vn v/vt/vn v/vt/vn v/vt/vn
-						v0 = lineResult.second[0] - 1;
-						v1 = lineResult.second[3] - 1;
-						v2 = lineResult.second[6] - 1;
-						v3 = lineResult.second[9] - 1;
-						vt0 = lineResult.second[1] - 1;
-						vt1 = lineResult.second[4] - 1;
-						vt2 = lineResult.second[7] - 1;
-						vt3 = lineResult.second[10] - 1;
-						vn0 = lineResult.second[2] - 1;
-						vn1 = lineResult.second[5] - 1;
-						vn2 = lineResult.second[8] - 1;
-						vn3 = lineResult.second[11] - 1;
-						break;
 					case 3:
 						// f v v v
-						isFourVertex = false;
-						v0 = lineResult.second[0] - 1;
-						v1 = lineResult.second[1] - 1;
-						v2 = lineResult.second[2] - 1;
+						vertex_n = 3;
+						for (int index = 0; index < vertex_n; index++) {
+							v_vector.push_back(lineResult.second[index]);
+							v_vector.push_back(0);
+							v_vector.push_back(0);
+						}
 						vtArray.push_back(new Point2f(0, 0));
-						vt0 = vt1 = vt2 = 0;
-						vnArray.push_back(new Vector3f(computeNormal(vArray[v0]->p, vArray[v1]->p, vArray[v2]->p)));
-						vn0 = vn1 = vn2 = 0;
+						vnArray.push_back(new Vector3f(computeNormal(vArray[lineResult.second[0]-1]->p, vArray[lineResult.second[1]-1]->p, vArray[lineResult.second[2]-1]->p)));
 						break;
-					case 9:
-						// f v/vt/vn v/vt/vn v/vt/vn
-						isFourVertex = false;
-						v0 = lineResult.second[0] - 1;
-						v1 = lineResult.second[3] - 1;
-						v2 = lineResult.second[6] - 1;
-						vt0 = lineResult.second[1] - 1;
-						vt1 = lineResult.second[4] - 1;
-						vt2 = lineResult.second[7] - 1;
-						vn0 = lineResult.second[2] - 1;
-						vn1 = lineResult.second[5] - 1;
-						vn2 = lineResult.second[8] - 1;
+					case 4:
+						// f v v v v
+						vertex_n = 4;
+						for (int index = 0; index < vertex_n; index++) {
+							v_vector.push_back(lineResult.second[index]);
+							v_vector.push_back(0);
+							v_vector.push_back(0);
+						}
+						vtArray.push_back(new Point2f(0, 0));
+						vnArray.push_back(new Vector3f(computeNormal(vArray[lineResult.second[0]-1]->p, vArray[lineResult.second[1]-1]->p, vArray[lineResult.second[2]-1]->p)));
 						break;
 					default:
-						rlog << "obj f line error\n";
-						return false;
+						// f v/vt/vn v/vt/vn v/vt/vn v/vt/vn ....
+						vertex_n = lineResult.second.size() / 3;
+						v_vector = lineResult.second;
 					}
-					if (isFourVertex) {
-						Triple<Vertex*> vTriple0(vArray[v0], vArray[v1], vArray[v2]);
-						Triple<Vertex*> vTriple1(vArray[v0], vArray[v2], vArray[v3]);
-						Triple<Point2f*> vtTriple0(vtArray[vt0], vtArray[vt1], vtArray[vt2]);
-						Triple<Point2f*> vtTriple1(vtArray[vt0], vtArray[vt2], vtArray[vt3]);
-						Triple<Vector3f*> vnTriple0(vnArray[vn0], vnArray[vn1], vnArray[vn2]);
-						Triple<Vector3f*> vnTriple1(vnArray[vn0], vnArray[vn2], vnArray[vn3]);
-						Triangle* tg0 = new Triangle(vTriple0, vtTriple0, vnTriple0);
-						Triangle* tg1 = new Triangle(vTriple1, vtTriple1, vnTriple1);
-						mesh->add(tg0);
-						mesh->add(tg1);
-					}
-					else {
-						Triple<Vertex*> vTriple0(vArray[v0], vArray[v1], vArray[v2]);
-						Triple<Point2f*> vtTriple0(vtArray[vt0], vtArray[vt1], vtArray[vt2]);
-						Triple<Vector3f*> vnTriple0(vnArray[vn0], vnArray[vn1], vnArray[vn2]);
-						Triangle* tg0 = new Triangle(vTriple0, vtTriple0, vnTriple0);
-						mesh->add(tg0);
+					int triangle_n = vertex_n - 2;
+					int v0;
+					int v1;
+					int v2;
+					int v[3];
+					int vt[3];
+					int vn[3];
+					for (int index = 0; index < triangle_n; index++) {
+						v0 = 0;
+						v1 = 3 * (1 + index);
+						v2 = 3 * (2 + index);
+						v[0] = v_vector[v0] - 1;
+						v[1] = v_vector[v1] - 1;
+						v[2] = v_vector[v2] - 1;
+						vt[0] = v_vector[v0 + 1] - 1;
+						vt[1] = v_vector[v1 + 1] - 1;
+						vt[2] = v_vector[v2 + 1] - 1;
+						vn[0] = v_vector[v0 + 2] - 1;
+						vn[1] = v_vector[v1 + 2] - 1;
+						vn[2] = v_vector[v2 + 2] - 1;
+						mesh->add(
+							new Triangle(Triple<Vertex*>(vArray[v[0]], vArray[v[1]], vArray[v[2]]), Triple<Point2f*>(vtArray[vt[0]], vtArray[vt[1]], vtArray[vt[2]]), Triple<Vector3f*>(vnArray[vn[0]], vnArray[vn[1]], vnArray[vn[2]]), mat_ptr));
 					}
 				}
 				else if (lineResult.first == ParserInstruction::vn) {
@@ -145,6 +257,12 @@ public:
 				}
 				else if (lineResult.first == ParserInstruction::vt) {
 					vtArray.push_back(new Point2f(lineResult.second[0], lineResult.second[1]));
+				}
+				else if (lineResult.first == ParserInstruction::comment) {
+					if (!texture.empty()) {
+						mesh->set_material(new lambertian(new image_texture(texture)));
+						mat_ptr = mesh->get_material();
+					}
 				}
 			}
 		}
@@ -157,19 +275,11 @@ private:
 	inline bool isFloatString(const std::string& str) {
 		for (const char& le : str) {
 			if (le != '-' && le != '.' && le != '0' && le != '1' && le != '2' && le != '3' && le != '4'
-				&& le != '5' && le != '6' && le != '7' && le != '8' && le != '9' && le != '+' && le != 'e') {
+				&& le != '5' && le != '6' && le != '7' && le != '8' && le != '9' && le != '+' && le != 'e' && le != ' ') {
 				return false;
 			}
 		}
 		return true;
-	}
-
-	template<typename T>
-	inline T convertStringToNumber(const std::string& s) {
-		std::istringstream istream(s);
-		T r;
-		istream >> r;
-		return r;
 	}
 
 	inline bool lineParse(const std::string& str, std::pair<ParserInstruction, std::vector<float>>* out) {
@@ -203,6 +313,8 @@ private:
 		}
 		bool first;
 		int floatCount;
+		std::string fname;
+		size_t n;
 		switch (itor->second) {
 		case ParserInstruction::v:
 			vLineParse(e, itor, out);
@@ -248,6 +360,31 @@ private:
 			}
 			out->first = itor->second;
 			break;
+		case ParserInstruction::mtllib:
+			n = objPath.find_last_of('/');
+			if (n != std::string::npos) {
+				fname = objPath.substr(0, n + 1) + e[1];
+			}
+			else {
+				fname = e[1];
+			}
+			parser.parse(fname, &mat_map);
+			out->first = itor->second;
+			break;
+		case ParserInstruction::usemtl:
+			mat_ptr = mat_map->find(e[1])->second;
+			out->first = itor->second;
+			break;
+		case ParserInstruction::comment:
+			if (e.size() >= 4 && e[1] == "__rdx__") {
+				if (e[2] == "texture") {
+					n = objPath.find_last_of('/');
+					if (n != std::string::npos) {
+						texture = objPath.substr(0, n + 1) + e[3].substr(1, e[3].size() - 2);
+					}
+				}
+			}
+			out->first = itor->second;
 		}
 
 		return true;
@@ -288,7 +425,7 @@ private:
 				index++;
 				if (tl != '/') {
 					if (tl != '0' && tl != '1' && tl != '2' && tl != '3' && tl != '4'
-						&& tl != '5' && tl != '6' && tl != '7' && tl != '8' && tl != '9') {
+						&& tl != '5' && tl != '6' && tl != '7' && tl != '8' && tl != '9' && tl != ' ') {
 						return false;
 					}
 					else {
@@ -310,5 +447,9 @@ private:
 	}
 
 	std::map<std::string, ParserInstruction> table;
+	MtlParser parser;
+	material* mat_ptr;
+	mtl_map* mat_map;
+	std::string objPath;
+	std::string texture;
 };
-

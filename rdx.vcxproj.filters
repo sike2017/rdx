@@ -25,9 +25,6 @@
     <ClInclude Include="core\color.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="core\triangle.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="display\image_png.h">
       <Filter>display</Filter>
     </ClInclude>
@@ -71,6 +68,24 @@
       <Filter>core</Filter>
     </ClInclude>
     <ClInclude Include="core\scenes.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\triangle.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\rz_types.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\mesh.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\transformation.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\texture.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\bvh.h">
       <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>

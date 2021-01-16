@@ -10,6 +10,7 @@
 #include "camera.h"
 #include "sphere.h"
 #include "scenes.h"
+#include "triangle.h"
 
 class RDXWindow : public WindowDisplayer {
 public:
@@ -21,9 +22,14 @@ public:
 
 protected:
 	virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override {
-		hitable* world = random_scene();
-		Vector3f lookfrom(13, 2, 3);
+		hitable* world = spot();
+		//Vector3f lookfrom(278, 273, -800);
+		//Vector3f lookat(278, 273, 0);
+		Vector3f lookfrom(-1.0, 0, -2.5);
 		Vector3f lookat(0, 0, 0);
+		float dist_to_focus = (lookfrom - lookat).length();
+		float aperture = 0.1;
+		float fov = 90.0;
 		//hitable* list[4];
 		//list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
 		//list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
@@ -31,7 +37,7 @@ protected:
 		//list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5));
 		//list[3] = new sphere(Vector3f(-1, 0, -1), -0.45, new dielectric(1.5));
 		//hitable* world = new hitable_list(list, 4);
-		camera cam(lookfrom, lookat, Vector3f(0, 1, 0), 20, static_cast<float>(width()) / static_cast<float>(height()));
+		camera cam(lookfrom, lookat, Vector3f(0, 1, 0), fov, static_cast<float>(width()) / static_cast<float>(height()), aperture, dist_to_focus);
 		std::vector<std::thread> workers;
 		int cpuNums = 6;
 		std::vector<int> pixel_nums(cpuNums, 0);
@@ -95,14 +101,16 @@ private:
 
 	Color color(const Ray& r, hitable* world, int depth) {
 		hit_record rec;
+
 		if (world->hit(r, 0.001, FLT_MAX, &rec)) {
 			Ray scattered;
 			Vector3f attenuation;
+			Color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
 			if (depth < 50 && rec.mat_ptr->scatter(r, rec, &attenuation, &scattered)) {
-				return attenuation * color(scattered, world, depth + 1);
+				return emitted + attenuation * color(scattered, world, depth + 1);
 			}
 			else {
-				return Color(0, 0, 0);
+				return emitted;
 			}
 		}
 		else {
@@ -113,9 +121,9 @@ private:
 	}
 
 	RGBA to_rgba(const Color& color) {
-		uint8_t ur = static_cast<int>(255.99 * color.r());
-		uint8_t ug = static_cast<int>(255.99 * color.g());
-		uint8_t ub = static_cast<int>(255.99 * color.b());
+		uint8_t ur = static_cast<int>(255.99 * range_float(color.r(), 0.0, 1.0));
+		uint8_t ug = static_cast<int>(255.99 * range_float(color.g(), 0.0, 1.0));
+		uint8_t ub = static_cast<int>(255.99 * range_float(color.b(), 0.0, 1.0));
 		return RGBA(ur, ug, ub, 255);
 	}
 };
