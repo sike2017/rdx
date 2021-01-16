@@ -45,22 +45,22 @@ hitable* simple_light() {
 }
 
 hitable* cornell_box() {
-	Mesh* mesh;
+	Mesh mesh(nullptr);
 	ObjParser objParser;
 	objParser.parse("model/cornell_box.obj", &mesh);
 	sphere* model = new sphere(Vector3f(0, 0, 0), 2, new diffuse_light(new solid_texture(Color(4, 4, 4))));
 	hitable** list = new hitable * [2];
-	list[0] = mesh;
+	list[0] = &mesh;
 	list[1] = model;
 	return new hitable_list(list, 2);
 }
 
 hitable* cube_light() {
-	Mesh* mesh;
+	Mesh mesh(nullptr);
 	ObjParser objParser;
 	objParser.parse("model/cube_light.obj", &mesh);
 	hitable** list = new hitable * [4];
-	list[0] = mesh;
+	list[0] = &mesh;
 	list[1] = new sphere(Vector3f(2, 5, 0), 1.0, new dielectric(1.7));
 	list[2] = new sphere(Vector3f(0, -1000, 0), 1000, new lambertian(new checker_texture(new solid_texture(Color(0.12, 0.19, 0.25)), new solid_texture(Color(0.9, 0.9, 0.9)))));
 	list[3] = new sphere(Vector3f(0, 20, 0), 2, new diffuse_light(new solid_texture(Color(40, 40, 40))));
@@ -68,13 +68,23 @@ hitable* cube_light() {
 }
 
 hitable* spot() {
-	Mesh* mesh;
+	Mesh* mesh = new Mesh(new lambertian(new solid_texture(Color(0.4, 0.2, 0.1))));
 	ObjParser objp;
-	objp.parse("model/spot/spot_triangulated_good.obj", &mesh);
-	hitable** list = new hitable * [4];
-	list[0] = mesh;
-	list[1] = new sphere(Vector3f(0, 20, 0), 2, new diffuse_light(new solid_texture(Color(40, 40, 40))));
-	list[2] = new sphere(Vector3f(4, 0, 0), 1, new dielectric(1.24));
-	list[3] = new sphere(Vector3f(0, -1001, 0), 1000, new lambertian(new checker_texture(new solid_texture(Color(0.12, 0.19, 0.25)), new solid_texture(Color(0.9, 0.9, 0.9)))));
-	return new hitable_list(list, 4);
+	objp.parse("model/spot/spot_triangulated_good.obj", mesh);
+	std::vector<hitable*> list;
+	list.push_back(mesh);
+	list.push_back(new sphere(Vector3f(0, 20, 0), 2, new diffuse_light(new solid_texture(Color(40, 40, 40)))));
+	list.push_back(new sphere(Vector3f(4.21, 0, 0), 1, new dielectric(1.24)));
+	list.push_back(new sphere(Vector3f(0, -1001, 0), 1000, new lambertian(new checker_texture(new solid_texture(Color(0.12, 0.19, 0.25)), new solid_texture(Color(0.9, 0.9, 0.9))))));
+	Mesh* cube = new Mesh(new lambertian(new solid_texture(Color(0.7, 0.7, 0.7))));
+	objp.parse("model/cube.obj", cube);
+	cube->trans(2, 0, 0);
+	list.push_back(cube);
+	list.push_back(new sphere(Vector3f(-2.0, 0, 0), 1, new metal(Vector3f(0.9, 0.9, 0.9), 0.1)));
+	list.push_back(new sphere(Vector3f(-4.16, 0, 0), 1, new lambertian(new solid_texture(Color(0.4, 0.2, 0.1)))));
+	std::unique_ptr<hitable*>(ar) = std::unique_ptr<hitable*>(new hitable * [list.size()]);
+	for (int index = 0; index < list.size(); index++) {
+		ar.get()[index] = list[index];
+	}
+	return new bvh_node(ar.get(), list.size(), 0.0f, FLT_MAX);
 }

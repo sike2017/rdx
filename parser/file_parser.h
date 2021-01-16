@@ -19,7 +19,7 @@ protected:
 	inline bool openFile(const std::string& filename) {
 		moduleFile = std::ifstream(filename, std::ios::in);
 		if (!moduleFile.is_open()) {
-			rlog << "open module file error\n";
+			//rlog << "open file error\n";
 			return false;
 		}
 		return true;
@@ -42,7 +42,7 @@ protected:
 class MtlParser : public FileParser
 {
 public:
-	MtlParser() { mat_ptr = nullptr; }
+	MtlParser() {}
 	~MtlParser() {}
 
 	virtual bool parse(const std::string& path, mtl_map** _list) {
@@ -152,6 +152,7 @@ private:
 	}
 
 	material* mat_ptr;
+	lambertian* default_lambertian;
 	std::string mat_name;
 };
 
@@ -179,13 +180,15 @@ public:
 		comment
 	};
 
-	virtual bool parse(const std::string& _filename, Mesh** _mesh) {
+	virtual bool parse(const std::string& _filename, Mesh* mesh) {
 		objPath = _filename;
+		texture = "";
+		mtlFound = false;
+		textureFound = false;
 		if (!openFile(_filename)) {
 			return false;
 		}
 		std::string lineStr;
-		Mesh* mesh = new Mesh(new lambertian(new solid_texture(Color(0.4, 0.2, 0.1))));
 		mat_ptr = mesh->get_material();
 		std::vector<Vertex*>& vArray = mesh->vArray;
 		std::vector<Point2f*>& vtArray = mesh->vtArray;
@@ -259,14 +262,13 @@ public:
 					vtArray.push_back(new Point2f(lineResult.second[0], lineResult.second[1]));
 				}
 				else if (lineResult.first == ParserInstruction::comment) {
-					if (!texture.empty()) {
+					if (textureFound) {
 						mesh->set_material(new lambertian(new image_texture(texture)));
 						mat_ptr = mesh->get_material();
 					}
 				}
 			}
 		}
-		*_mesh = mesh;
 		closeFile();
 		return true;
 	}
@@ -368,10 +370,15 @@ private:
 			else {
 				fname = e[1];
 			}
-			parser.parse(fname, &mat_map);
+			mtlFound = parser.parse(fname, &mat_map);
 			out->first = itor->second;
 			break;
 		case ParserInstruction::usemtl:
+			if (mat_map == nullptr) {
+				// no .mtl file found
+				out->first = itor->second;
+				break;
+			}
 			mat_ptr = mat_map->find(e[1])->second;
 			out->first = itor->second;
 			break;
@@ -381,6 +388,7 @@ private:
 					n = objPath.find_last_of('/');
 					if (n != std::string::npos) {
 						texture = objPath.substr(0, n + 1) + e[3].substr(1, e[3].size() - 2);
+						textureFound = true;
 					}
 				}
 			}
@@ -452,4 +460,6 @@ private:
 	mtl_map* mat_map;
 	std::string objPath;
 	std::string texture;
+	bool mtlFound;
+	bool textureFound;
 };

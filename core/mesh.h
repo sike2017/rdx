@@ -26,7 +26,6 @@ public:
 	}
 
 	void set_material(material* mp) {
-		if (mat_ptr != nullptr) delete mat_ptr;
 		mat_ptr = mp;
 	}
 
@@ -70,6 +69,14 @@ public:
 		for (Vertex* v : vArray) {
 			v->p = m * v->p;
 		}
+	}
+
+	void trans(float dx, float dy, float dz) {
+		this->mul(trans::translation(dx, dy, dz));
+	}
+
+	void scale(float sx, float sy, float sz) {
+		this->mul(trans::scale(sx, sy, sz));
 	}
 
 	base_list<Triangle*> trianglelist;

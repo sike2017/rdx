@@ -104,8 +104,8 @@ public:
 		float maxx = std::max(v[0]->p.x(), std::max(v[1]->p.x(), v[2]->p.x()));
 		float maxy = std::max(v[0]->p.y(), std::max(v[1]->p.y(), v[2]->p.y()));
 		float maxz = std::max(v[0]->p.z(), std::max(v[1]->p.z(), v[2]->p.z()));
-		*box = aabb(Vector3f(minx, miny, minz),
-			Vector3f(maxx, maxy, maxz));
+		*box = aabb(Vector3f(minx - 1.0f, miny - 1.0f, minz - 1.0f),
+			Vector3f(maxx + 1.0f, maxy + 1.0f, maxz + 1.0f));
 		return true;
 	}
 

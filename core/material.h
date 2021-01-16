@@ -93,7 +93,7 @@ public:
 			*scattered = Ray(rec.p, reflected);
 			reflect_prob = 1.0;
 		}
-		rdx_srand(time(NULL));
+
 		if (rdx_rand() < reflect_prob) {
 			*scattered = Ray(rec.p, reflected);
 		}

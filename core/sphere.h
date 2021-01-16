@@ -4,7 +4,7 @@
 class sphere : public hitable {
 public:
 	sphere() {}
-	sphere(Vector3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) {}
+	sphere(Vector3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) { mat_ptr->d = 4; }
 	virtual bool hit(const Ray& r, float tmin, float tmax, hit_record* rec) const;
 	virtual bool bounding_box(float t0, float t1, aabb* box) const;
 	Vector3f center;

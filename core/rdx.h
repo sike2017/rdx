@@ -25,18 +25,11 @@ protected:
 		hitable* world = spot();
 		//Vector3f lookfrom(278, 273, -800);
 		//Vector3f lookat(278, 273, 0);
-		Vector3f lookfrom(-1.0, 0, -2.5);
+		Vector3f lookfrom(-1.0, 0, -12.4);
 		Vector3f lookat(0, 0, 0);
 		float dist_to_focus = (lookfrom - lookat).length();
 		float aperture = 0.1;
-		float fov = 90.0;
-		//hitable* list[4];
-		//list[0] = new sphere(Vector3f(0, 0, -1), 0.5, new lambertian(Vector3f(0.1, 0.2, 0.5)));
-		//list[1] = new sphere(Vector3f(0, -100.5, -1), 100, new lambertian(Vector3f(0.8, 0.8, 0.0)));
-		//list[2] = new sphere(Vector3f(1, 0, -1), 0.5, new metal(Vector3f(0.8, 0.6, 0.2), 0.3));
-		//list[3] = new sphere(Vector3f(-1, 0, -1), 0.5, new dielectric(1.5));
-		//list[3] = new sphere(Vector3f(-1, 0, -1), -0.45, new dielectric(1.5));
-		//hitable* world = new hitable_list(list, 4);
+		float fov = 40.0;
 		camera cam(lookfrom, lookat, Vector3f(0, 1, 0), fov, static_cast<float>(width()) / static_cast<float>(height()), aperture, dist_to_focus);
 		std::vector<std::thread> workers;
 		int cpuNums = 6;
@@ -102,7 +95,7 @@ private:
 	Color color(const Ray& r, hitable* world, int depth) {
 		hit_record rec;
 
-		if (world->hit(r, 0.001, FLT_MAX, &rec)) {
+		if (world->hit(r, 0.0f, FLT_MAX, &rec)) {
 			Ray scattered;
 			Vector3f attenuation;
 			Color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
@@ -127,3 +120,4 @@ private:
 		return RGBA(ur, ug, ub, 255);
 	}
 };
+
