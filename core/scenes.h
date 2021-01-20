@@ -1,15 +1,15 @@
 #pragma once
-#include "transformation.h"
+#include "hitablelist.h"
 #include "parser/file_parser.h"
 #include "rdx_random.h"
 #include "sphere.h"
 #include "material.h"
 #include "bvh.h"
 
-hitable* random_scene() {
+ hitable* random_scene() {
 	int n = 500;
 	hitable** list = new hitable * [n + 1];
-	texture* checker = new checker_texture(new solid_texture(Vector3f(0.2, 0.3, 0.1)), new solid_texture(Vector3f(0.9, 0.9, 0.9)));
+	rdxr_texture* checker = new checker_texture(new solid_texture(Color(0.2, 0.3, 0.1)), new solid_texture(Color(0.9, 0.9, 0.9)));
 	list[0] = new sphere(Vector3f(0, -1000, 0), 1000, new lambertian(checker));
 	int i = 1;
 	for (int a = -11; a < 11; a++) {
@@ -31,20 +31,22 @@ hitable* random_scene() {
 	list[i++] = new sphere(Vector3f(-4, 1, 0), 1.0, new lambertian(new solid_texture(Color(0.4, 0.2, 0.1))));
 	list[i++] = new sphere(Vector3f(4, 1, 0), 1.0, new metal(Vector3f(0.7, 0.6, 0.5), 0.0));
 
-	return new hitable_list(list, i);
+	hitable* scene = new hitable_list(list, i);
+	return scene;
 }
 
-hitable* simple_light() {
-	texture* checker = new checker_texture(new solid_texture(Color(0.2, 0.3, 0.1)), new solid_texture(Color(0.9, 0.9, 0.9)));
+ hitable* simple_light() {
+	rdxr_texture* checker = new checker_texture(new solid_texture(Color(0.2, 0.3, 0.1)), new solid_texture(Color(0.9, 0.9, 0.9)));
 	hitable** list = new hitable * [4];
 	list[0] = new sphere(Vector3f(0, -1000, 0), 1000, new lambertian(checker));
 	list[1] = new sphere(Vector3f(0, 2, 0), 2, new lambertian(checker));
 	list[2] = new sphere(Vector3f(0, 7, 0), 2, new diffuse_light(new solid_texture(Color(4, 4, 4))));
 	list[3] = new sphere(Vector3f(1, 4, 2), 2, new diffuse_light(new solid_texture(Color(4, 4, 4))));
-	return new hitable_list(list, 4);
+	hitable* scene = new hitable_list(list, 4);
+	return scene;
 }
 
-hitable* cornell_box() {
+ hitable* cornell_box() {
 	Mesh mesh(nullptr);
 	ObjParser objParser;
 	objParser.parse("model/cornell_box.obj", &mesh);
@@ -52,10 +54,11 @@ hitable* cornell_box() {
 	hitable** list = new hitable * [2];
 	list[0] = &mesh;
 	list[1] = model;
-	return new hitable_list(list, 2);
+	hitable* scene = new hitable_list(list, 2);
+	return scene;
 }
 
-hitable* cube_light() {
+ hitable* cube_light() {
 	Mesh mesh(nullptr);
 	ObjParser objParser;
 	objParser.parse("model/cube_light.obj", &mesh);
@@ -64,10 +67,11 @@ hitable* cube_light() {
 	list[1] = new sphere(Vector3f(2, 5, 0), 1.0, new dielectric(1.7));
 	list[2] = new sphere(Vector3f(0, -1000, 0), 1000, new lambertian(new checker_texture(new solid_texture(Color(0.12, 0.19, 0.25)), new solid_texture(Color(0.9, 0.9, 0.9)))));
 	list[3] = new sphere(Vector3f(0, 20, 0), 2, new diffuse_light(new solid_texture(Color(40, 40, 40))));
-	return new hitable_list(list, 4);
+	hitable* scene = new hitable_list(list, 4);
+	return scene;
 }
 
-hitable* spot() {
+ hitable* spot() {
 	Mesh* mesh = new Mesh(new lambertian(new solid_texture(Color(0.4, 0.2, 0.1))));
 	ObjParser objp;
 	objp.parse("model/spot/spot_triangulated_good.obj", mesh);
@@ -86,5 +90,7 @@ hitable* spot() {
 	for (int index = 0; index < list.size(); index++) {
 		ar.get()[index] = list[index];
 	}
-	return new bvh_node(ar.get(), list.size(), 0.0f, FLT_MAX);
+	hitable* bvhn = new bvh_node(ar.get(), list.size(), 0.0f, FLT_MAX);
+	return bvhn;
 }
+

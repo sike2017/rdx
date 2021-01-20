@@ -3,11 +3,11 @@
 #include "rdx_random.h"
 #include "texture.h"
 
-Vector3f reflect(const Vector3f& v, const Vector3f& n) {
+__device__ Vector3f reflect(const Vector3f& v, const Vector3f& n) {
 	return v - 2 * dot(v, n) * n;
 }
 
-bool refract(const Vector3f& v, const Vector3f& n, float ni_over_nt, Vector3f* refracted) {
+__device__ bool refract(const Vector3f& v, const Vector3f& n, float ni_over_nt, Vector3f* refracted) {
 	Vector3f uv = unit_vector(v);
 	float dt = dot(uv, n);
 	float discriminant = 1.0 - ni_over_nt * ni_over_nt * (1 - dt * dt);
@@ -20,7 +20,7 @@ bool refract(const Vector3f& v, const Vector3f& n, float ni_over_nt, Vector3f* r
 	}
 }
 
-float schlick(float cosine, float ref_idx) {
+__device__ float schlick(float cosine, float ref_idx) {
 	float r0 = (1 - ref_idx) / (1 + ref_idx);
 	r0 = r0 * r0;
 	return r0 + (1 - r0) * pow((1 - cosine), 5);
@@ -28,8 +28,8 @@ float schlick(float cosine, float ref_idx) {
 
 class material {
 public:
-	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const { return false; }
-	virtual Color emitted(float u, float v, const Vector3f& p) const {
+	__device__ virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const { return false; }
+	__device__ virtual Color emitted(float u, float v, const Vector3f& p) const {
 		return Color(0, 0, 0);
 	}
 
@@ -41,21 +41,21 @@ public:
 
 class lambertian : public material {
 public:
-	lambertian(texture* a) : albedo(a) {}
-	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
+	__device__ lambertian(rdxr_texture* a) : albedo(a) {}
+	__device__ virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
 		Vector3f target = rec.p + rec.normal + random_in_unit_sphere();
 		*scattered = Ray(rec.p, target - rec.p);
 		*attenuation = albedo->value(rec.u, rec.v, rec.p);
 		return true;
 	}
 
-	texture* albedo;
+	rdxr_texture* albedo;
 };
 
 class metal : public material {
 public:
-	metal(const Vector3f& a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 1; }
-	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
+	__device__ metal(const Vector3f& a, float f) : albedo(a) { if (f < 1) fuzz = f; else fuzz = 1; }
+	__device__ virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
 		Vector3f reflected = reflect(unit_vector(r_in.direction()), rec.normal);
 		*scattered = Ray(rec.p, reflected + fuzz * random_in_unit_sphere());
 		*attenuation = albedo;
@@ -67,8 +67,8 @@ public:
 
 class dielectric : public material {
 public:
-	dielectric(float ri) : ref_idx(ri) {}
-	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
+	__device__ dielectric(float ri) : ref_idx(ri) {}
+	__device__ virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const {
 		Vector3f outward_normal;
 		Vector3f reflected = reflect(r_in.direction(), rec.normal);
 		float ni_over_nt;
@@ -108,10 +108,10 @@ public:
 
 class diffuse_light : public material {
 public:
-	diffuse_light(texture* a) : emit(a) {}
-	virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const { return false; }
-	virtual Color emitted(float u, float v, const Vector3f& p) const override {
+	__device__ diffuse_light(rdxr_texture* a) : emit(a) {}
+	__device__ virtual bool scatter(const Ray& r_in, const hit_record& rec, Vector3f* attenuation, Ray* scattered) const { return false; }
+	__device__ virtual Color emitted(float u, float v, const Vector3f& p) const override {
 		return emit->value(u, v, p);
 	}
-	texture* emit;
+	rdxr_texture* emit;
 };

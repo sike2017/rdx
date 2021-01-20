@@ -316,6 +316,10 @@ bool RenderBitmap::saveBitmap(const char* fileName)
 	return true;
 }
 
+uint32_t* RenderBitmap::getBits() {
+	return pBmBits;
+}
+
 int RenderBitmap::convertSoftwareCoordinateToDeviceCoordinateX(int x)
 {
 	return x;

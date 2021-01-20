@@ -80,7 +80,7 @@ public:
 		}
 		box = surrounding_box(box_left, box_right);
 	}
-	virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
+	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
 		if (box.hit(r, t_min, t_max)) {
 			hit_record left_rec, right_rec;
 			bool hit_left = left->hit(r, t_min, t_max, &left_rec);
@@ -110,7 +110,7 @@ public:
 			return false;
 		}
 	}
-	virtual bool bounding_box(float t0, float t1, aabb* b) const {
+	__device__ virtual bool bounding_box(float t0, float t1, aabb* b) const {
 		*b = box;
 		return true;
 	}

@@ -37,7 +37,7 @@ protected:
 		float rate = 0.f;
 		unsigned long long screen_size = width() * height();
 		for (int id = 0; id < cpuNums; id++) {
-			workers.push_back(std::thread([=, &pixel_nums, &rate]() {
+			workers.push_back(std::thread([=, &pixel_nums]() {
 				int x, y;
 				for (int index = id; index < screen_size; index += cpuNums) {
 					if (*renderCommand == RENDER_COMMAND::STOP) {

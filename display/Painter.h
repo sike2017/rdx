@@ -44,6 +44,7 @@ public:
 	void setPixel(int x, int y, RGBA color);
 	bool cleanUp();
 	bool saveBitmap(const char* fileName);
+	uint32_t* getBits();
 
 private:
 	int convertSoftwareCoordinateToDeviceCoordinateX(int x);

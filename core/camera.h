@@ -11,6 +11,7 @@ Vector3f random_in_unit_disk() {
 
 class camera {
 public:
+	camera() {}
 	camera(const Vector3f& lookfrom, const Vector3f& lookat, const Vector3f& vup, float vfov, float aspect, float aperture, float focus_dist) {
 		lens_radius = aperture / 2;
 		float theta = vfov * M_PI / 180;

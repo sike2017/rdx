@@ -1,4 +1,5 @@
 #pragma once
+#include "math/monolith_math.h"
 #include "rz_types.h"
 #include"color.h"
 #include "hitable.h"
@@ -53,7 +54,7 @@ public:
 		vn[0] = vn[1] = vn[2] = nullptr;
 	}
 
-	virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
+	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		Vector3f e0 = v[1]->p - v[0]->p;
 		Vector3f e1 = v[2]->p - v[0]->p;
 
@@ -97,13 +98,13 @@ public:
 		return false;
 	}
 
-	virtual bool bounding_box(float t0, float t1, aabb* box) const {
-		float minx = std::min(v[0]->p.x(), std::min(v[1]->p.x(), v[2]->p.x()));
-		float miny = std::min(v[0]->p.y(), std::min(v[1]->p.y(), v[2]->p.y()));
-		float minz = std::min(v[0]->p.z(), std::min(v[1]->p.z(), v[2]->p.z()));
-		float maxx = std::max(v[0]->p.x(), std::max(v[1]->p.x(), v[2]->p.x()));
-		float maxy = std::max(v[0]->p.y(), std::max(v[1]->p.y(), v[2]->p.y()));
-		float maxz = std::max(v[0]->p.z(), std::max(v[1]->p.z(), v[2]->p.z()));
+	__device__ virtual bool bounding_box(float t0, float t1, aabb* box) const {
+		float minx = util::min(v[0]->p.x(), util::min(v[1]->p.x(), v[2]->p.x()));
+		float miny = util::min(v[0]->p.y(), util::min(v[1]->p.y(), v[2]->p.y()));
+		float minz = util::min(v[0]->p.z(), util::min(v[1]->p.z(), v[2]->p.z()));
+		float maxx = util::max(v[0]->p.x(), util::max(v[1]->p.x(), v[2]->p.x()));
+		float maxy = util::max(v[0]->p.y(), util::max(v[1]->p.y(), v[2]->p.y()));
+		float maxz = util::max(v[0]->p.z(), util::max(v[1]->p.z(), v[2]->p.z()));
 		*box = aabb(Vector3f(minx - 1.0f, miny - 1.0f, minz - 1.0f),
 			Vector3f(maxx + 1.0f, maxy + 1.0f, maxz + 1.0f));
 		return true;

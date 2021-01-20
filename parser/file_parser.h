@@ -12,8 +12,8 @@ typedef std::map<std::string, material*> mtl_map;
 class FileParser
 {
 public:
-	virtual bool parse(const std::string& path, Mesh** _mesh) { return false; }
-	virtual bool parse(const std::string& path, mtl_map** _list) { return false; }
+	__device__ virtual bool parse(const std::string& path, Mesh* _mesh) { return false; }
+	__device__ virtual bool parse(const std::string& path, mtl_map** _list) { return false; }
 
 protected:
 	inline bool openFile(const std::string& filename) {
@@ -45,7 +45,7 @@ public:
 	MtlParser() {}
 	~MtlParser() {}
 
-	virtual bool parse(const std::string& path, mtl_map** _list) {
+	__device__ virtual bool parse(const std::string& path, mtl_map** _list) {
 		if (!openFile(path)) {
 			return false;
 		}
@@ -80,23 +80,26 @@ private:
 		}
 	}
 
-	bool line_parse(const std::string& line, mtl_map* pout) {
-		bool rdx_type = false;
+	__device__ bool line_parse(const std::string& line, mtl_map* pout) {
 		int index = 0;
 		base_list<std::string> list;
 		divid_space(line, &list);
 		size_t size = list.size();
 		float rdx_light;
+		std::string strInList;
 		while (index < size) {
-			if (list[index] == "#") {
+			strInList = list[index];
+			if (strInList == "#") {
 				if (index > size - 4) {
 					break;
 				}
-				if (list[index + 1] != "__rdx__") {
+				std::string temp = list[index + 1];
+				if (temp != "__rdx__") {
 					break;
 				}
 				std::pair<std::string, material*> pair;
-				if (list[index + 2] == "light") {
+				temp = list[index + 2];
+				if (temp == "light") {
 					if (pout->size() != 0) {
 						delete mat_ptr;
 					}
@@ -107,42 +110,42 @@ private:
 					return true;
 				}
 			}
-			else if (list[index] == "newmtl") {
+			else if (strInList == "newmtl") {
 				mat_ptr = new lambertian(new solid_texture(Color(0.7, 0.7, 0.7)));
 				pout->insert(mtl_pair(list[index + 1], mat_ptr));
 				mat_name = list[index + 1];
 			}
-			else if (list[index] == "Ns") {
+			else if (strInList == "Ns") {
 				mat_ptr->ns = convertStringToNumber<float>(list[index + 1]);
 				return true;
 			}
-			else if (list[index] == "Ka") {
+			else if (strInList == "Ka") {
 				mat_ptr->ka[0] = convertStringToNumber<float>(list[index + 1]);
 				mat_ptr->ka[1] = convertStringToNumber<float>(list[index + 2]);
 				mat_ptr->ka[2] = convertStringToNumber<float>(list[index + 3]);
 				return true;
 			}
-			else if (list[index] == "Ks") {
+			else if (strInList == "Ks") {
 				mat_ptr->ks[0] = convertStringToNumber<float>(list[index + 1]);
 				mat_ptr->ks[1] = convertStringToNumber<float>(list[index + 2]);
 				mat_ptr->ks[2] = convertStringToNumber<float>(list[index + 3]);
 				return true;
 			}
-			else if (list[index] == "Ke") {
+			else if (strInList == "Ke") {
 				mat_ptr->ke[0] = convertStringToNumber<float>(list[index + 1]);
 				mat_ptr->ke[1] = convertStringToNumber<float>(list[index + 2]);
 				mat_ptr->ke[2] = convertStringToNumber<float>(list[index + 3]);
 				return true;
 			}
-			else if (list[index] == "Ni") {
+			else if (strInList == "Ni") {
 				mat_ptr->ni = convertStringToNumber<float>(list[index + 1]);
 				return true;
 			}
-			else if (list[index] == "d") {
+			else if (strInList == "d") {
 				mat_ptr->d = convertStringToNumber<float>(list[index + 1]);
 				return true;
 			}
-			else if (list[index] == "illum") {
+			else if (strInList == "illum") {
 				mat_ptr->illum = convertStringToNumber<float>(list[index + 1]);
 				return true;
 			}
@@ -180,7 +183,7 @@ public:
 		comment
 	};
 
-	virtual bool parse(const std::string& _filename, Mesh* mesh) {
+	__device__ virtual bool parse(const std::string& _filename, Mesh* mesh) {
 		objPath = _filename;
 		texture = "";
 		mtlFound = false;
@@ -190,12 +193,12 @@ public:
 		}
 		std::string lineStr;
 		mat_ptr = mesh->get_material();
-		std::vector<Vertex*>& vArray = mesh->vArray;
-		std::vector<Point2f*>& vtArray = mesh->vtArray;
-		std::vector<Vector3f*>& vnArray = mesh->vnArray;
-		std::vector<float> v_vector;
+		base_list<Vertex*>& vArray = mesh->vArray;
+		base_list<Point2f*>& vtArray = mesh->vtArray;
+		base_list<Vector3f*>& vnArray = mesh->vnArray;
+		base_list<float> v_vector; // index of vertex element v vt vn
 		while (std::getline(moduleFile, lineStr)) {
-			std::pair<ParserInstruction, std::vector<float>> lineResult;
+			std::pair<ParserInstruction, base_list<float>> lineResult;
 			if (lineParse(lineStr, &lineResult)) {
 				if (lineResult.first == ParserInstruction::v) {
 					Vertex* vertex = new Vertex(Point3f(lineResult.second[0], lineResult.second[1], lineResult.second[2], 1.0f));
@@ -203,6 +206,7 @@ public:
 				}
 				else if (lineResult.first == ParserInstruction::f) {
 					int vertex_n = 3;
+					Vertex *vertex0, *vertex1, *vertex2;
 					switch (lineResult.second.size()) {
 					case 3:
 						// f v v v
@@ -213,7 +217,10 @@ public:
 							v_vector.push_back(0);
 						}
 						vtArray.push_back(new Point2f(0, 0));
-						vnArray.push_back(new Vector3f(computeNormal(vArray[lineResult.second[0]-1]->p, vArray[lineResult.second[1]-1]->p, vArray[lineResult.second[2]-1]->p)));
+						vertex0 = vArray[lineResult.second[0]-1];
+						vertex1 = vArray[lineResult.second[1]-1];
+						vertex2 = vArray[lineResult.second[2]-1];
+						vnArray.push_back(new Vector3f(computeNormal(vertex0->p, vertex1->p, vertex2->p)));
 						break;
 					case 4:
 						// f v v v v
@@ -224,7 +231,10 @@ public:
 							v_vector.push_back(0);
 						}
 						vtArray.push_back(new Point2f(0, 0));
-						vnArray.push_back(new Vector3f(computeNormal(vArray[lineResult.second[0]-1]->p, vArray[lineResult.second[1]-1]->p, vArray[lineResult.second[2]-1]->p)));
+						vertex0 = vArray[lineResult.second[0] - 1];
+						vertex1 = vArray[lineResult.second[1] - 1];
+						vertex2 = vArray[lineResult.second[2] - 1];
+						vnArray.push_back(new Vector3f(computeNormal(vertex0->p, vertex1->p, vertex2->p)));
 						break;
 					default:
 						// f v/vt/vn v/vt/vn v/vt/vn v/vt/vn ....
@@ -284,7 +294,7 @@ private:
 		return true;
 	}
 
-	inline bool lineParse(const std::string& str, std::pair<ParserInstruction, std::vector<float>>* out) {
+	inline bool lineParse(const std::string& str, std::pair<ParserInstruction, base_list<float>>* out) {
 		std::vector<std::string> e;
 		std::string temp;
 		int index = 0;
@@ -398,7 +408,7 @@ private:
 		return true;
 	}
 
-	inline bool vLineParse(const std::vector<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, std::vector<float>>* out) {
+	inline bool vLineParse(const std::vector<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, base_list<float>>* out) {
 		bool first = true;
 		int floatCount = 0;
 		for (const std::string& l : e) {
@@ -419,9 +429,8 @@ private:
 		return true;
 	}
 
-	inline bool fLineParse(const std::vector<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, std::vector<float>>* out) {
+	inline bool fLineParse(const std::vector<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, base_list<float>>* out) {
 		bool first = true;
-		int vCount = 0;
 		for (const std::string& l : e) {
 			if (first) {
 				first = false;

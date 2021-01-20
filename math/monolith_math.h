@@ -1,134 +1,134 @@
 #pragma once
-#include <memory>
+#include <device_launch_parameters.h>
 #include "log/log.h"
 
 class Vector4f
 {
 public:
-	Vector4f(float _x = 0, float _y = 0, float _z = 0, float _w = 0) { e[0] = _x; e[1] = _y; e[2] = _z; e[3] = _w; }
-	~Vector4f() {}
+	__device__ Vector4f(float _x = 0, float _y = 0, float _z = 0, float _w = 0) { e[0] = _x; e[1] = _y; e[2] = _z; e[3] = _w; }
+	__device__ ~Vector4f() {}
 
-	inline float x() const { return e[0]; }
-	inline float y() const { return e[1]; }
-	inline float z() const { return e[2]; }
-	inline float w() const { return e[3]; }
+	inline __device__ float x() const { return e[0]; }
+	inline __device__ float y() const { return e[1]; }
+	inline __device__ float z() const { return e[2]; }
+	inline __device__ float w() const { return e[3]; }
 
-	inline float& rx() { return e[0]; }
-	inline float& ry() { return e[1]; }
-	inline float& rz() { return e[2]; }
-	inline float& rw() { return e[3]; }
+	inline __device__ float& rx() { return e[0]; }
+	inline __device__ float& ry() { return e[1]; }
+	inline __device__ float& rz() { return e[2]; }
+	inline __device__ float& rw() { return e[3]; }
 
-	inline bool operator==(const Vector4f& r) const {
+	inline __device__ bool operator==(const Vector4f& r) const {
 		return (e[0] == r.e[0] && e[1] == r.e[1] && e[2] == r.e[2] && e[3] == r.e[3]);
 	}
 
-	inline Vector4f operator+() const {
+	inline __device__ Vector4f operator+() const {
 		return *this;
 	}
-	inline Vector4f operator-() const {
+	inline __device__ Vector4f operator-() const {
 		return Vector4f(-e[0], -e[1], -e[2], -e[3]);
 	}
 
-	inline Vector4f operator+=(const Vector4f& r) {
+	inline __device__ Vector4f operator+=(const Vector4f& r) {
 		e[0] += r.e[0];
 		e[1] += r.e[1];
 		e[2] += r.e[2];
 		e[3] += r.e[3];
 		return *this;
 	}
-	inline Vector4f operator-=(const Vector4f& r) {
+	inline __device__ Vector4f operator-=(const Vector4f& r) {
 		e[0] -= r.e[0];
 		e[1] -= r.e[1];
 		e[2] -= r.e[2];
 		e[3] -= r.e[3];
 		return *this;
 	}
-	inline Vector4f operator*=(const Vector4f& r) {
+	inline __device__ Vector4f operator*=(const Vector4f& r) {
 		e[0] *= r.e[0];
 		e[1] *= r.e[1];
 		e[2] *= r.e[2];
 		e[3] *= r.e[3];
 		return *this;
 	}
-	inline Vector4f operator/=(const Vector4f& r) {
+	inline __device__ Vector4f operator/=(const Vector4f& r) {
 		e[0] /= r.e[0];
 		e[1] /= r.e[1];
 		e[2] /= r.e[2];
 		e[3] /= r.e[3];
 		return *this;
 	}
-	inline Vector4f operator*=(float k) {
+	inline __device__ Vector4f operator*=(float k) {
 		e[0] *= k;
 		e[1] *= k;
 		e[2] *= k;
 		e[3] *= k;
 		return *this;
 	}
-	inline Vector4f operator/=(float k) {
+	inline __device__ Vector4f operator/=(float k) {
 		e[0] /= k;
 		e[1] /= k;
 		e[2] /= k;
 		e[3] /= k;
 		return *this;
 	}
-	inline float& operator[](int index) {
+	inline __device__ float& operator[](int index) {
 		return e[index];
 	}
-	inline float operator[](int index) const {
+	inline __device__ float operator[](int index) const {
 		return e[index];
 	}
-	inline float operator()(int index) const {
+	inline __device__ float operator()(int index) const {
 		return e[index];
 	}
 
-	inline inline float length() const {
+	__device__ inline __device__ float length() const {
 		return sqrt(e[0] * e[0] + e[1] * e[1] + e[2] * e[2]);
 	}
-	inline float squared_length() const {
+	__device__ float squared_length() const {
 		return e[0] * e[0] + e[1] * e[1] + e[2] * e[2];
 	}
 
 	float e[4];
 };
 
-inline Vector4f operator+(const Vector4f& l, const Vector4f& r) {
+inline __device__ Vector4f operator+(const Vector4f& l, const Vector4f& r) {
 	return Vector4f(l.x() + r.x(), l.y() + r.y(), l.z() + r.z(), l.w() + r.w());
 }
-inline Vector4f operator-(const Vector4f& l, const Vector4f& r) {
+inline __device__ Vector4f operator-(const Vector4f& l, const Vector4f& r) {
 	return Vector4f(l.x() - r.x(), l.y() - r.y(), l.z() - r.z(), l.w() - r.w());
 }
-inline Vector4f operator*(const Vector4f& l, const Vector4f& r) {
+inline __device__ Vector4f operator*(const Vector4f& l, const Vector4f& r) {
 	return Vector4f(l.x() * r.x(), l.y() * r.y(), l.z() * r.z(), l.w() * r.w());
 }
-inline Vector4f operator/(const Vector4f& l, const Vector4f& r) {
+inline __device__ Vector4f operator/(const Vector4f& l, const Vector4f& r) {
 	return Vector4f(l.x() / r.x(), l.y() / r.y(), l.z() / r.z(), l.w() / r.w());
 }
-inline Vector4f operator*(const Vector4f& l, float r) {
+inline __device__ Vector4f operator*(const Vector4f& l, float r) {
 	return Vector4f(l.x() * r, l.y() * r, l.z() * r, l.w() * r);
 }
-inline Vector4f operator/(const Vector4f& l, float r) {
+inline __device__ Vector4f operator/(const Vector4f& l, float r) {
 	return Vector4f(l.x() / r, l.y() / r, l.z() / r, l.w() / r);
 }
 
-inline Vector4f operator*(float left, const Vector4f& right) {
+inline __device__ Vector4f operator*(float left, const Vector4f& right) {
 	return Vector4f(left * right.e[0], left * right.e[1], left * right.e[2], left * right.e[3]);
 }
 
 typedef Vector4f Vector3f;
 typedef Vector4f Vector2f;
 
-inline Vector4f unit_vector(const Vector3f& v) {
+inline __device__ Vector4f unit_vector(const Vector3f& v) {
 	Vector4f ret = v;
 	float k = 1.0 / sqrt(v.x() * v.x() + v.y() * v.y() + v.z() * v.z());
 	ret.e[0] *= k; ret.e[1] *= k; ret.e[2] *= k;
 	return ret;
 }
 
-inline float dot(const Vector3f& v0, const Vector3f& v1) {
+inline __device__ float dot(const Vector3f& v0, const Vector3f& v1) {
 	return v0.e[0] * v1.e[0] + v0.e[1] * v1.e[1] + v0.e[2] * v1.e[2];
 }
 
-inline Vector3f cross(const Vector3f& v0, const Vector3f& v1) {
+inline __device__ Vector3f cross(const Vector3f& v0, const Vector3f& v1) {
 	return Vector3f((v0.e[1] * v1.e[2] - v0.e[2] * v1.e[1]),
 		(-(v0.e[0] * v1.e[2] - v0.e[2] * v1.e[0])),
 		(v0.e[0] * v1.e[1] - v0.e[1] * v1.e[0]));
@@ -279,11 +279,11 @@ namespace util {
 #undef max
 #endif
 	template<typename T>
-	T min(T a, T b) {
+	__device__ T min(T a, T b) {
 		return a < b ? a : b;
 	}
 	template<typename T>
-	T max(T a, T b) {
+	__device__ T max(T a, T b) {
 		return a > b ? a : b;
 	}
 

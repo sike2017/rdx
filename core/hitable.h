@@ -1,6 +1,7 @@
 #pragma once
-#include "ray.h"
+#include <device_launch_parameters.h>
 
+#include "ray.h"
 class material;
 
 struct hit_record {
@@ -43,8 +44,8 @@ public:
 
 class hitable {
 public:
-	virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const = 0;
-	virtual bool bounding_box(float t0, float t1, aabb* box) const = 0;
+	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const = 0;
+	__device__ virtual bool bounding_box(float t0, float t1, aabb* box) const = 0;
 };
 
 aabb surrounding_box(aabb box0, aabb box1) {

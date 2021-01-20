@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "rz_types.h"
+#include "transformation.h"
 #include "triangle.h"
 #include "material.h"
 
@@ -14,26 +14,26 @@ public:
 
 class Mesh : public hitable {
 public:
-	Mesh(material* mp) { mat_ptr = mp; }
-	~Mesh() {
+	__device__ Mesh(material* mp) { mat_ptr = mp; }
+	__device__ ~Mesh() {
 		for (Triangle* p : trianglelist) {
 			delete p;
 		}
 	}
 	
-	void add(Triangle* tg) {
+	__device__ void add(Triangle* tg) {
 		trianglelist.add(tg);
 	}
 
-	void set_material(material* mp) {
+	__device__ void set_material(material* mp) {
 		mat_ptr = mp;
 	}
 
-	material* get_material() const {
+	__device__ material* get_material() const {
 		return mat_ptr;
 	}
 
-	virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
+	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		hit_record temp_record;
 		bool hit_anything = false;
 		double closest_so_far = t_max;
@@ -47,7 +47,7 @@ public:
 		return hit_anything;
 	}
 
-	virtual bool bounding_box(float t0, float t1, aabb* box) const override {
+	__device__ virtual bool bounding_box(float t0, float t1, aabb* box) const override {
 		float bl[3] = { INFINITY, INFINITY, INFINITY };
 		float ur[3] = { -INFINITY, -INFINITY, -INFINITY };
 		for (Vertex* v : vArray) {
@@ -72,11 +72,11 @@ public:
 	}
 
 	void trans(float dx, float dy, float dz) {
-		this->mul(trans::translation(dx, dy, dz));
+		this->mul(transformation::translation(dx, dy, dz));
 	}
 
 	void scale(float sx, float sy, float sz) {
-		this->mul(trans::scale(sx, sy, sz));
+		this->mul(transformation::scale(sx, sy, sz));
 	}
 
 	base_list<Triangle*> trianglelist;

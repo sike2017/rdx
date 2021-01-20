@@ -20,6 +20,9 @@
     <Filter Include="parser">
       <UniqueIdentifier>{0b31d329-083e-43ae-889f-80d3e9a55e34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="rdx_cuda">
+      <UniqueIdentifier>{63d9506f-a985-4d78-a0fd-6da710ef9bf8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\color.h">
@@ -88,6 +91,15 @@
     <ClInclude Include="core\bvh.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="core\pbr.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="rdx_cuda\rdx_cuda.h">
+      <Filter>rdx_cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="rdx_cuda\list_device.h">
+      <Filter>rdx_cuda</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="display\image_png.cpp">
@@ -108,5 +120,10 @@
     <ClCompile Include="core\win_main.cpp">
       <Filter>core</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="rdx_cuda\render.cu">
+      <Filter>rdx_cuda</Filter>
+    </CudaCompile>
   </ItemGroup>
 </Project>

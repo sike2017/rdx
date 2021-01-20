@@ -13,6 +13,12 @@ namespace display
 	LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 }
 
+enum class RENDER_COMMAND
+{
+	RUNNING,
+	STOP
+};
+
 class WindowDisplayer
 {
 public:
@@ -36,12 +42,6 @@ protected:
 		CALL_NEXTTIME,
 		CALL_STOP,
 		CALL_STOP_SAVE_IMAGE
-	};
-
-	enum class RENDER_COMMAND
-	{
-		RUNNING,
-		STOP
 	};
 
 	RENDER_STATUS renderStatus;
@@ -75,6 +75,7 @@ protected:
 		return RENDER_STATUS::CALL_NEXTTIME;
 	}
 	virtual void keyboardEvent(int* screen_keys) {}
+	RenderBitmap getRenderBitmap();
 
 private:
 	HINSTANCE hInstance;

@@ -34,6 +34,10 @@ int WindowDisplayer::height() const {
 	return _height;
 }
 
+RenderBitmap WindowDisplayer::getRenderBitmap() {
+	return rb;
+}
+
 int WindowDisplayer::InitWindow()
 {
 	/*static TCHAR szAppName[] = TEXT("RayTracing");*/

@@ -1,7 +1,7 @@
 #pragma once
 #include "math/monolith_math.h"
 
-namespace trans {
+namespace transformation {
 	inline Matrix4x4f translation(float dx, float dy, float dz) {
 		return Matrix4x4f(
 			1, 0, 0, dx,

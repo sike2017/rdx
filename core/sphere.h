@@ -3,16 +3,16 @@
 
 class sphere : public hitable {
 public:
-	sphere() {}
-	sphere(Vector3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) { mat_ptr->d = 4; }
-	virtual bool hit(const Ray& r, float tmin, float tmax, hit_record* rec) const;
-	virtual bool bounding_box(float t0, float t1, aabb* box) const;
+	__device__ sphere() {}
+	__device__ sphere(Vector3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) { mat_ptr->d = 4; }
+	__device__ virtual bool hit(const Ray& r, float tmin, float tmax, hit_record* rec) const;
+	__device__ virtual bool bounding_box(float t0, float t1, aabb* box) const;
 	Vector3f center;
 	float radius;
 	material* mat_ptr;
 
 private:
-	void get_sphere_uv(const Vector3f& p, float* u, float* v) const {
+	__device__ void get_sphere_uv(const Vector3f& p, float* u, float* v) const {
 		float phi = atan2(p.z(), p.x());
 		float theta = asin(p.y());
 		*u = 1 - (phi + M_PI) / (2 * M_PI);
@@ -20,7 +20,7 @@ private:
 	}
 };
 
-bool sphere::hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
+__device__ bool sphere::hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
 	Vector3f oc = r.origin() - center;
 	float a = dot(r.direction(), r.direction());
 	float b = dot(oc, r.direction());
