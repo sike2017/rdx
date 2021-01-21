@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 #include <iostream>
 #include "display/WindowDisplayer.h"
-#include "render.cu"
+#include "render.h"
 
 class RdxCuda : public WindowDisplayer {
 public:
@@ -11,9 +11,5 @@ public:
     ~RdxCuda() {}
 
 protected:
-    virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override {
-        ra::RenderCuda renderCuda;
-        uint32_t* pixels = getRenderBitmap().getBits();
-        renderCuda.render(width(), height(), pixels, spot());
-    }
+    virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override;
 };

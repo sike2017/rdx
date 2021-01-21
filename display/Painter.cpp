@@ -16,7 +16,7 @@ RGBA::RGBA(uint8_t tred, uint8_t tgreen, uint8_t tblue, uint8_t talpha)
 	alpha = talpha;
 }
 
-uint32_t RGBA::toRGBAUint32()
+ uint32_t RGBA::toRGBAUint32()
 {
 	uint32_t result;
 	uint8_t* p = reinterpret_cast<uint8_t*>(&result);

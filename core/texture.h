@@ -10,10 +10,10 @@ public:
 
 class image_texture : public rdxr_texture {
 public:
-	__device__ image_texture(const std::string& image_file) {
+	__host__ __device__ image_texture(const std::string& image_file) {
 		image = image_png::load_image(image_file.c_str());
 	}
-	__device__ ~image_texture() {
+	__host__ __device__ ~image_texture() {
 		image_png::free_image(&image);
 	}
 	__device__ virtual Color value(float u, float v, const Vector3f& p) const override {
@@ -34,8 +34,8 @@ public:
 
 class solid_texture : public rdxr_texture {
 public:
-	__device__ solid_texture() {}
-	__device__ solid_texture(const Color& c) : color(c) {}
+	__host__ __device__ solid_texture() {}
+	__host__ __device__ solid_texture(const Color& c) : color(c) {}
 	__device__ virtual Color value(float u, float v, const Vector3f& p) const {
 		return color;
 	}

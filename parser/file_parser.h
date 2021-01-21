@@ -12,8 +12,8 @@ typedef std::map<std::string, material*> mtl_map;
 class FileParser
 {
 public:
-	__device__ virtual bool parse(const std::string& path, Mesh* _mesh) { return false; }
-	__device__ virtual bool parse(const std::string& path, mtl_map** _list) { return false; }
+	virtual bool parse(const std::string& path, Mesh* _mesh) { return false; }
+	virtual bool parse(const std::string& path, mtl_map** _list) { return false; }
 
 protected:
 	inline bool openFile(const std::string& filename) {
@@ -45,7 +45,7 @@ public:
 	MtlParser() {}
 	~MtlParser() {}
 
-	__device__ virtual bool parse(const std::string& path, mtl_map** _list) {
+	virtual bool parse(const std::string& path, mtl_map** _list) {
 		if (!openFile(path)) {
 			return false;
 		}
@@ -80,7 +80,7 @@ private:
 		}
 	}
 
-	__device__ bool line_parse(const std::string& line, mtl_map* pout) {
+	bool line_parse(const std::string& line, mtl_map* pout) {
 		int index = 0;
 		base_list<std::string> list;
 		divid_space(line, &list);
@@ -183,7 +183,7 @@ public:
 		comment
 	};
 
-	__device__ virtual bool parse(const std::string& _filename, Mesh* mesh) {
+	virtual bool parse(const std::string& _filename, Mesh* mesh) {
 		objPath = _filename;
 		texture = "";
 		mtlFound = false;

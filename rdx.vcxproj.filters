@@ -64,15 +64,6 @@
     <ClInclude Include="core\camera.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="core\material.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="core\rdx_random.h">
-      <Filter>core</Filter>
-    </ClInclude>
-    <ClInclude Include="core\scenes.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="core\triangle.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -97,8 +88,17 @@
     <ClInclude Include="rdx_cuda\rdx_cuda.h">
       <Filter>rdx_cuda</Filter>
     </ClInclude>
-    <ClInclude Include="rdx_cuda\list_device.h">
+    <ClInclude Include="rdx_cuda\render.h">
       <Filter>rdx_cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="core\scenes.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\material.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\rdx_rand.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -120,9 +120,24 @@
     <ClCompile Include="core\win_main.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="core\scenes.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\hitable.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\material.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\hitablelist.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="rdx_cuda\render.cu">
+      <Filter>rdx_cuda</Filter>
+    </CudaCompile>
+    <CudaCompile Include="rdx_cuda\rdx_cuda.cu">
       <Filter>rdx_cuda</Filter>
     </CudaCompile>
   </ItemGroup>

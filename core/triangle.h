@@ -98,7 +98,7 @@ public:
 		return false;
 	}
 
-	__device__ virtual bool bounding_box(float t0, float t1, aabb* box) const {
+	virtual bool bounding_box(float t0, float t1, aabb* box) const {
 		float minx = util::min(v[0]->p.x(), util::min(v[1]->p.x(), v[2]->p.x()));
 		float miny = util::min(v[0]->p.y(), util::min(v[1]->p.y(), v[2]->p.y()));
 		float minz = util::min(v[0]->p.z(), util::min(v[1]->p.z(), v[2]->p.z()));

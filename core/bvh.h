@@ -1,7 +1,7 @@
 #pragma once
 #include "ray.h"
 #include "hitable.h"
-#include "rdx_random.h"
+#include "rdx_rand.h"
 
 int box_x_compare(const void* a, const void* b) {
 	aabb box_left, box_right;
@@ -52,7 +52,6 @@ class bvh_node : public hitable {
 public:
 	bvh_node() {}
 	bvh_node(hitable** l, int n, float time0, float time1) {
-		rdx_srand(time(NULL));
 		int axis = static_cast<int>(3 * rdx_rand());
 		if (axis == 0) {
 			qsort(l, n, sizeof(hitable*), box_x_compare);
@@ -110,7 +109,7 @@ public:
 			return false;
 		}
 	}
-	__device__ virtual bool bounding_box(float t0, float t1, aabb* b) const {
+	virtual bool bounding_box(float t0, float t1, aabb* b) const {
 		*b = box;
 		return true;
 	}

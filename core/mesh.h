@@ -14,26 +14,26 @@ public:
 
 class Mesh : public hitable {
 public:
-	__device__ Mesh(material* mp) { mat_ptr = mp; }
-	__device__ ~Mesh() {
+	Mesh(material* mp) { mat_ptr = mp; }
+	~Mesh() {
 		for (Triangle* p : trianglelist) {
 			delete p;
 		}
 	}
 	
-	__device__ void add(Triangle* tg) {
+	void add(Triangle* tg) {
 		trianglelist.add(tg);
 	}
 
-	__device__ void set_material(material* mp) {
+	void set_material(material* mp) {
 		mat_ptr = mp;
 	}
 
-	__device__ material* get_material() const {
+	material* get_material() const {
 		return mat_ptr;
 	}
 
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
+	virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		hit_record temp_record;
 		bool hit_anything = false;
 		double closest_so_far = t_max;
@@ -47,7 +47,7 @@ public:
 		return hit_anything;
 	}
 
-	__device__ virtual bool bounding_box(float t0, float t1, aabb* box) const override {
+	virtual bool bounding_box(float t0, float t1, aabb* box) const override {
 		float bl[3] = { INFINITY, INFINITY, INFINITY };
 		float ur[3] = { -INFINITY, -INFINITY, -INFINITY };
 		for (Vertex* v : vArray) {

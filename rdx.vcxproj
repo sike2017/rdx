@@ -149,6 +149,7 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>false</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -162,7 +163,7 @@
     <ClInclude Include="core\pbr.h" />
     <ClInclude Include="core\ray.h" />
     <ClInclude Include="core\rdx.h" />
-    <ClInclude Include="core\rdx_random.h" />
+    <ClInclude Include="core\rdx_rand.h" />
     <ClInclude Include="core\rz_types.h" />
     <ClInclude Include="core\scenes.h" />
     <ClInclude Include="core\sphere.h" />
@@ -175,19 +176,30 @@
     <ClInclude Include="log\log.h" />
     <ClInclude Include="math\monolith_math.h" />
     <ClInclude Include="parser\file_parser.h" />
-    <ClInclude Include="rdx_cuda\list_device.h" />
     <ClInclude Include="rdx_cuda\rdx_cuda.h" />
+    <ClInclude Include="rdx_cuda\render.h" />
     <CudaCompile Include="rdx_cuda\render.cu">
       <FileType>Document</FileType>
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateRelocatableDeviceCode>
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="core\hitable.cpp" />
+    <ClCompile Include="core\hitablelist.cpp" />
+    <ClCompile Include="core\material.cpp" />
+    <ClCompile Include="core\scenes.cpp" />
     <ClCompile Include="core\win_main.cpp" />
     <ClCompile Include="display\image_png.cpp" />
     <ClCompile Include="display\Painter.cpp" />
     <ClCompile Include="display\WindowDisplayer.cpp" />
     <ClCompile Include="log\log.cpp" />
     <ClCompile Include="math\monolith_math.cpp" />
+    <CudaCompile Include="rdx_cuda\rdx_cuda.cu">
+      <FileType>Document</FileType>
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateRelocatableDeviceCode>
+      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateRelocatableDeviceCode>
+    </CudaCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
