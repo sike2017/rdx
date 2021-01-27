@@ -1,8 +1,5 @@
 #pragma once
-#include <cuda_runtime.h>
-#include <iostream>
 #include "display/WindowDisplayer.h"
-#include "render.h"
 
 class RdxCuda : public WindowDisplayer {
 public:

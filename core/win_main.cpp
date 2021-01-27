@@ -1,5 +1,5 @@
-#include "rdx.h"
 #include "rdx_cuda/rdx_cuda.h"
+#include "asset_manager.h"
 
 int main(int argc, char* argv) {
 	unsigned long long width = 1920;

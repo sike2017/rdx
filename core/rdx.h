@@ -23,7 +23,7 @@ public:
 
 protected:
 	virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override {
-		hitable* world = random_scene();
+		hitable* world = spot();
 		//Vector3f lookfrom(278, 273, -800);
 		//Vector3f lookat(278, 273, 0);
 		Vector3f lookfrom(-1.0, 0, -12.4);
@@ -48,10 +48,11 @@ protected:
 					y = index / width();
 					Color col(0, 0, 0);
 					for (int s = 0; s < ns; s++) {
-						float u = static_cast<float>(x + rdx_rand()) / static_cast<float>(width());
-						float v = static_cast<float>(y + rdx_rand()) / static_cast<float>(height());
+						float u = static_cast<float>(x + host_rand()) / static_cast<float>(width());
+						float v = static_cast<float>(y + host_rand()) / static_cast<float>(height());
 						//setPixel(x, y, RGBA(0, 162, 232));
-						Ray r = cam.get_ray(u, v);
+						curandState state;
+						Ray r = cam.get_ray(u, v, &state);
 						col += color(r, world, 0);
 					}
 					col /= static_cast<float>(ns);
@@ -100,7 +101,8 @@ private:
 			Ray scattered;
 			Vector3f attenuation;
 			Color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
-			if (depth < 50 && rec.mat_ptr->scatter(r, rec, &attenuation, &scattered)) {
+			curandState state;
+			if (depth < 50 && rec.mat_ptr->scatter(r, rec, &attenuation, &scattered, &state)) {
 				return emitted + attenuation * color(scattered, world, depth + 1);
 			}
 			else {

@@ -79,13 +79,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>.;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>.;$(IncludePath);C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include</IncludePath>
+    <LibraryPath>$(LibraryPath);C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\lib\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>.;C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>.;$(IncludePath);C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\include</IncludePath>
+    <LibraryPath>$(LibraryPath);C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\lib\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -121,6 +121,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,6 +131,9 @@
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CudaRuntime>Static</CudaRuntime>
+      <GPUDebugInfo>true</GPUDebugInfo>
+      <HostDebugInfo>false</HostDebugInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -139,6 +144,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,12 +157,15 @@
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <GenerateRelocatableDeviceCode>false</GenerateRelocatableDeviceCode>
+      <CudaRuntime>Static</CudaRuntime>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="core\asset_manager.h" />
     <ClInclude Include="core\bvh.h" />
     <ClInclude Include="core\camera.h" />
     <ClInclude Include="core\color.h" />
+    <ClInclude Include="core\cudaMesh.h" />
     <ClInclude Include="core\hitable.h" />
     <ClInclude Include="core\hitablelist.h" />
     <ClInclude Include="core\material.h" />
@@ -178,28 +188,22 @@
     <ClInclude Include="parser\file_parser.h" />
     <ClInclude Include="rdx_cuda\rdx_cuda.h" />
     <ClInclude Include="rdx_cuda\render.h" />
-    <CudaCompile Include="rdx_cuda\render.cu">
-      <FileType>Document</FileType>
-      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateRelocatableDeviceCode>
-      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateRelocatableDeviceCode>
-    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="core\hitable.cpp" />
-    <ClCompile Include="core\hitablelist.cpp" />
-    <ClCompile Include="core\material.cpp" />
-    <ClCompile Include="core\scenes.cpp" />
+    <ClCompile Include="core\asset_manager.cu" />
     <ClCompile Include="core\win_main.cpp" />
     <ClCompile Include="display\image_png.cpp" />
     <ClCompile Include="display\Painter.cpp" />
     <ClCompile Include="display\WindowDisplayer.cpp" />
     <ClCompile Include="log\log.cpp" />
     <ClCompile Include="math\monolith_math.cpp" />
-    <CudaCompile Include="rdx_cuda\rdx_cuda.cu">
-      <FileType>Document</FileType>
-      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateRelocatableDeviceCode>
-      <GenerateRelocatableDeviceCode Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateRelocatableDeviceCode>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="rdx_cuda\rdx_cuda.cpp">
+      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GPUDebugInfo>
+      <ExtensibleWholeProgramCompilation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExtensibleWholeProgramCompilation>
     </CudaCompile>
+    <CudaCompile Include="rdx_cuda\render.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

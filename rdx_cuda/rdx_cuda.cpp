@@ -1,5 +1,5 @@
-#include "core/scenes.h"
 #include "rdx_cuda.h"
+#include "render.h"
 
 RdxCuda::RENDER_STATUS RdxCuda::render(RENDER_COMMAND* renderCommand) {
     ra::RenderCuda renderCuda;

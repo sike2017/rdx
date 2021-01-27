@@ -1,11 +1,12 @@
 #pragma once
 #include "hitable.h"
 #include "material.h"
+#include "rz_types.h"
 
 class sphere : public hitable {
 public:
 	__host__ __device__ sphere() {}
-	__host__ __device__ sphere(Vector3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) { mat_ptr->d = 4; }
+	__host__ __device__ sphere(Point3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) {}
 	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
 		Vector3f oc = r.origin() - center;
 		float a = dot(r.direction(), r.direction());
@@ -50,3 +51,4 @@ private:
 		*v = (theta + M_PI / 2) / M_PI;
 	}
 };
+

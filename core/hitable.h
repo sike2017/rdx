@@ -15,11 +15,11 @@ struct hit_record {
 
 class aabb {
 public:
-	aabb() {}
-	aabb(const Vector3f& a, const Vector3f& b) { _min = a; _max = b; }
+	__host__ __device__ aabb() {}
+	__host__ __device__ aabb(const Vector3f& a, const Vector3f& b) { _min = a; _max = b; }
 
-	Vector3f min() const { return _min; }
-	Vector3f max() const { return _max; }
+	__host__ __device__ Vector3f min() const { return _min; }
+	__host__ __device__ Vector3f max() const { return _max; }
 
 	__device__ bool hit(const Ray& r, float tmin, float tmax) const {
 		for (int a = 0; a < 3; a++) {
@@ -48,4 +48,13 @@ public:
 	virtual bool bounding_box(float t0, float t1, aabb* box) const = 0;
 };
 
-aabb surrounding_box(aabb box0, aabb box1);
+inline aabb surrounding_box(aabb box0, aabb box1) {
+	Vector3f _small(util::min(box0.min().x(), box1.min().x()),
+		util::min(box0.min().y(), box1.min().y()),
+		util::min(box0.min().z(), box1.min().z()));
+	Vector3f _big(util::max(box0.max().x(), box1.max().x()),
+		util::max(box0.max().y(), box1.max().y()),
+		util::max(box0.max().z(), box1.max().z()));
+	return aabb(_small, _big);
+}
+

@@ -4,7 +4,7 @@
 #include"color.h"
 #include "hitable.h"
 
-inline void barycentric(const Point2f& q, const Point2f& p0, const Point2f& p1, const Point2f& p2, Point3f* out) {
+__host__ __device__ inline void barycentric(const Point2f& q, const Point2f& p0, const Point2f& p1, const Point2f& p2, Point3f* out) {
 	float gama = ((p0.y() - p1.y()) * q.x() + (p1.x() - p0.x()) * q.y() + p0.x() * p1.y() - p1.x() * p0.y()) /
 		((p0.y() - p1.y()) * p2.x() + (p1.x() - p0.x()) * p2.y() + p0.x() * p1.y() - p1.x() * p0.y());
 	float beta = ((p0.y() - p2.y()) * q.x() + (p2.x() - p0.x()) * q.y() + p0.x() * p2.y() - p2.x() * p0.y()) /
@@ -14,41 +14,11 @@ inline void barycentric(const Point2f& q, const Point2f& p0, const Point2f& p1, 
 	*out = Vector3f(alpha, beta, gama);
 }
 
-template<typename T>
-class Triple {
-public:
-	Triple<T>() {}
-	Triple<T>(T v0, T v1, T v2) { e[0] = v0; e[1] = v1; e[2] = v2; }
-
-	T& operator[](int index) { return e[index]; }
-	const T operator[](int index) const { return e[index]; }
-	T e[3];
-};
-
-class Vertex {
-public:
-	Vertex() {}
-	Vertex(const Point3f& _p) { p = _p; }
-	// 把 Vertex 的位置与矩阵相乘
-	void mul(const Matrix4x4f& m) {
-		p = m * p;
-	}
-
-	Point3f p;
-	float w;
-	
-	Color color;
-};
-
-inline Log& operator<<(Log& log, const Vertex& v) {
-	log << v.p;
-	return log;
-}
-
 class Triangle : public hitable {
 public:
-	Triangle(const Triple<Vertex*>& _v, const Triple<Point2f*>& _vt, const Triple<Vector3f*>& _vn, material* mp) { v = _v; vt = _vt; vn = _vn; mat_ptr = mp; }
-	~Triangle() {
+	__host__ __device__ Triangle() {}
+	__host__ __device__ Triangle(const Triple<Vertex*>& _v, const Triple<Point2f*>& _vt, const Triple<Vector3f*>& _vn, AssetNode<material> mp) { v = _v; vt = _vt; vn = _vn; matr = mp; }
+	__host__ __device__ ~Triangle() {
 		v[0] = v[1] = v[2] = nullptr;
 		vt[0] = vt[1] = vt[2] = nullptr;
 		vn[0] = vn[1] = vn[2] = nullptr;
@@ -85,7 +55,7 @@ public:
 			rec->t = t_float;
 			rec->p = r.point_at_parameter(t_float);
 			rec->normal = unit_vector(cross(v[1]->p - v[0]->p, v[2]->p - v[0]->p));
-			rec->mat_ptr = mat_ptr;
+			rec->mat_ptr = matr.asset_device;
 			Point3f barycentric_coordinate;
 			barycentric(rec->p, v[0]->p, v[1]->p, v[2]->p, &barycentric_coordinate);
 			float alpha = barycentric_coordinate[0];
@@ -113,7 +83,8 @@ public:
 	Triple<Vertex*> v;
 	Triple<Point2f*> vt;
 	Triple<Vector3f*> vn;
-	material* mat_ptr;
+	AssetNode<material> matr;
 };
 
 inline Vector3f computeNormal(const Point3f& p0, const Point3f& p1, const Point3f& p2) { return unit_vector(cross(p1 - p0, p2 - p0)); }
+

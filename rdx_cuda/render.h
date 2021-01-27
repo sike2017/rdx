@@ -1,10 +1,8 @@
 #pragma once
-#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
 #include "core/color.h"
-#include "core/hitablelist.h"
-
-#define checkCudaErrors(val) check_cuda( (val), #val, __FILE__, __LINE__ )
-void check_cuda(cudaError_t result, char const* const func, const char* const file, int const line);
+#include "core/hitable.h"
+#include "core/rz_types.h"
 
 namespace ra { // rdx cuda
     __device__ uint32_t to_u(const Color& color);

@@ -44,8 +44,8 @@ public:
 
 class checker_texture : public rdxr_texture {
 public:
-	__device__ checker_texture() {}
-	__device__ checker_texture(rdxr_texture* t0, rdxr_texture* t1): even(t0), odd(t1) {}
+	__host__ __device__ checker_texture() {}
+	__host__ __device__ checker_texture(rdxr_texture* t0, rdxr_texture* t1): even(t0), odd(t1) {}
 	__device__ virtual Color value(float u, float v, const Vector3f& p) const {
 		float sines = sin(10 * p.x()) * sin(10 * p.y()) * sin(10 * p.z());
 		if (sines < 0) {

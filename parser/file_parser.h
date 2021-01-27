@@ -4,10 +4,10 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-#include "core/mesh.h"
+#include "core/asset_manager.h"
 
-typedef std::pair<std::string, material*> mtl_pair;
-typedef std::map<std::string, material*> mtl_map;
+typedef std::pair<std::string, AssetNode<material>> mtl_pair;
+typedef std::map<std::string, AssetNode<material>> mtl_map;
 
 class FileParser
 {
@@ -42,7 +42,7 @@ protected:
 class MtlParser : public FileParser
 {
 public:
-	MtlParser() {}
+	MtlParser(AssetFactor* _factor) { assetFactor = _factor; }
 	~MtlParser() {}
 
 	virtual bool parse(const std::string& path, mtl_map** _list) {
@@ -97,72 +97,70 @@ private:
 				if (temp != "__rdx__") {
 					break;
 				}
-				std::pair<std::string, material*> pair;
 				temp = list[index + 2];
 				if (temp == "light") {
-					if (pout->size() != 0) {
-						delete mat_ptr;
-					}
+					current_material.clear();
 					rdx_light = convertStringToNumber<float>(list[index + 3]);
-					mat_ptr = new diffuse_light(new solid_texture(Color(1.0, 1.0, 1.0) * rdx_light));
-					mat_ptr->rdx_light = rdx_light;
-					pout->find(mat_name)->second = mat_ptr;
+					current_material = assetFactor->createDiffuseLight(assetFactor->createSolidTexture(Color(1.0, 1.0, 1.0) * rdx_light).to_texture()).to_material();
+					pout->find(matr_name)->second = assetFactor->createDiffuseLight(assetFactor->createSolidTexture(Color(1.0, 1.0, 1.0) * rdx_light).to_texture()).to_material();
 					return true;
 				}
 			}
 			else if (strInList == "newmtl") {
-				mat_ptr = new lambertian(new solid_texture(Color(0.7, 0.7, 0.7)));
-				pout->insert(mtl_pair(list[index + 1], mat_ptr));
-				mat_name = list[index + 1];
+				createMode = true;
+				current_material = assetFactor->createLambertian(assetFactor->createSolidTexture(Color(0.7, 0.7, 0.7)).to_texture()).to_material();
+				pout->insert(mtl_pair(list[index + 1], current_material));
+				matr_name = list[index + 1];
 			}
-			else if (strInList == "Ns") {
-				mat_ptr->ns = convertStringToNumber<float>(list[index + 1]);
-				return true;
-			}
-			else if (strInList == "Ka") {
-				mat_ptr->ka[0] = convertStringToNumber<float>(list[index + 1]);
-				mat_ptr->ka[1] = convertStringToNumber<float>(list[index + 2]);
-				mat_ptr->ka[2] = convertStringToNumber<float>(list[index + 3]);
-				return true;
-			}
-			else if (strInList == "Ks") {
-				mat_ptr->ks[0] = convertStringToNumber<float>(list[index + 1]);
-				mat_ptr->ks[1] = convertStringToNumber<float>(list[index + 2]);
-				mat_ptr->ks[2] = convertStringToNumber<float>(list[index + 3]);
-				return true;
-			}
-			else if (strInList == "Ke") {
-				mat_ptr->ke[0] = convertStringToNumber<float>(list[index + 1]);
-				mat_ptr->ke[1] = convertStringToNumber<float>(list[index + 2]);
-				mat_ptr->ke[2] = convertStringToNumber<float>(list[index + 3]);
-				return true;
-			}
-			else if (strInList == "Ni") {
-				mat_ptr->ni = convertStringToNumber<float>(list[index + 1]);
-				return true;
-			}
-			else if (strInList == "d") {
-				mat_ptr->d = convertStringToNumber<float>(list[index + 1]);
-				return true;
-			}
-			else if (strInList == "illum") {
-				mat_ptr->illum = convertStringToNumber<float>(list[index + 1]);
-				return true;
-			}
+			//else if (strInList == "Ns") {
+			//	matr->ns = convertStringToNumber<float>(list[index + 1]);
+			//	return true;
+			//}
+			//else if (strInList == "Ka") {
+			//	matr->ka[0] = convertStringToNumber<float>(list[index + 1]);
+			//	matr->ka[1] = convertStringToNumber<float>(list[index + 2]);
+			//	matr->ka[2] = convertStringToNumber<float>(list[index + 3]);
+			//	return true;
+			//}
+			//else if (strInList == "Ks") {
+			//	matr->ks[0] = convertStringToNumber<float>(list[index + 1]);
+			//	matr->ks[1] = convertStringToNumber<float>(list[index + 2]);
+			//	matr->ks[2] = convertStringToNumber<float>(list[index + 3]);
+			//	return true;
+			//}
+			//else if (strInList == "Ke") {
+			//	matr->ke[0] = convertStringToNumber<float>(list[index + 1]);
+			//	matr->ke[1] = convertStringToNumber<float>(list[index + 2]);
+			//	matr->ke[2] = convertStringToNumber<float>(list[index + 3]);
+			//	return true;
+			//}
+			//else if (strInList == "Ni") {
+			//	matr->ni = convertStringToNumber<float>(list[index + 1]);
+			//	return true;
+			//}
+			//else if (strInList == "d") {
+			//	matr->d = convertStringToNumber<float>(list[index + 1]);
+			//	return true;
+			//}
+			//else if (strInList == "illum") {
+			//	matr->illum = convertStringToNumber<float>(list[index + 1]);
+			//	return true;
+			//}
 			index++;
 		}
 		return false;
 	}
 
-	material* mat_ptr;
-	lambertian* default_lambertian;
-	std::string mat_name;
+	bool createMode = false;
+	std::string matr_name;
+	AssetNode<material> current_material;
+	AssetFactor* assetFactor;
 };
 
 class ObjParser : public FileParser
 {
 public:
-	ObjParser() {
+	ObjParser(AssetFactor* _asset_factor) : assetFactor(_asset_factor), parser(_asset_factor) {
 		table.insert(std::pair<std::string, ParserInstruction>("v", ParserInstruction::v));
 		table.insert(std::pair<std::string, ParserInstruction>("f", ParserInstruction::f));
 		table.insert(std::pair<std::string, ParserInstruction>("vt", ParserInstruction::vt));
@@ -192,17 +190,17 @@ public:
 			return false;
 		}
 		std::string lineStr;
-		mat_ptr = mesh->get_material();
-		base_list<Vertex*>& vArray = mesh->vArray;
-		base_list<Point2f*>& vtArray = mesh->vtArray;
-		base_list<Vector3f*>& vnArray = mesh->vnArray;
+		AssetNode<rdxr_texture> solidTexture = assetFactor->createSolidTexture(Color(0.7, 0.7, 0.7)).to_texture();
+		current_matr = assetFactor->createLambertian(solidTexture).to_material();
+		base_list<Vertex>& vArray = mesh->vArray;
+		base_list<Point2f>& vtArray = mesh->vtArray;
+		base_list<Vector3f>& vnArray = mesh->vnArray;
 		base_list<float> v_vector; // index of vertex element v vt vn
 		while (std::getline(moduleFile, lineStr)) {
 			std::pair<ParserInstruction, base_list<float>> lineResult;
-			if (lineParse(lineStr, &lineResult)) {
+			if (lineParse(lineStr, &lineResult, mesh)) {
 				if (lineResult.first == ParserInstruction::v) {
-					Vertex* vertex = new Vertex(Point3f(lineResult.second[0], lineResult.second[1], lineResult.second[2], 1.0f));
-					vArray.push_back(vertex);
+					vArray.push_back(Vertex(Point3f(lineResult.second[0], lineResult.second[1], lineResult.second[2], 1.0f)));
 				}
 				else if (lineResult.first == ParserInstruction::f) {
 					int vertex_n = 3;
@@ -216,11 +214,11 @@ public:
 							v_vector.push_back(0);
 							v_vector.push_back(0);
 						}
-						vtArray.push_back(new Point2f(0, 0));
-						vertex0 = vArray[lineResult.second[0]-1];
-						vertex1 = vArray[lineResult.second[1]-1];
-						vertex2 = vArray[lineResult.second[2]-1];
-						vnArray.push_back(new Vector3f(computeNormal(vertex0->p, vertex1->p, vertex2->p)));
+						vtArray.push_back(Point2f(0, 0));
+						vertex0 = &vArray[lineResult.second[0]-1];
+						vertex1 = &vArray[lineResult.second[1]-1];
+						vertex2 = &vArray[lineResult.second[2]-1];
+						vnArray.push_back(Vector3f(computeNormal(vertex0->p, vertex1->p, vertex2->p)));
 						break;
 					case 4:
 						// f v v v v
@@ -230,11 +228,11 @@ public:
 							v_vector.push_back(0);
 							v_vector.push_back(0);
 						}
-						vtArray.push_back(new Point2f(0, 0));
-						vertex0 = vArray[lineResult.second[0] - 1];
-						vertex1 = vArray[lineResult.second[1] - 1];
-						vertex2 = vArray[lineResult.second[2] - 1];
-						vnArray.push_back(new Vector3f(computeNormal(vertex0->p, vertex1->p, vertex2->p)));
+						vtArray.push_back(Point2f(0, 0));
+						vertex0 = &vArray[lineResult.second[0] - 1];
+						vertex1 = &vArray[lineResult.second[1] - 1];
+						vertex2 = &vArray[lineResult.second[2] - 1];
+						vnArray.push_back(Vector3f(computeNormal(vertex0->p, vertex1->p, vertex2->p)));
 						break;
 					default:
 						// f v/vt/vn v/vt/vn v/vt/vn v/vt/vn ....
@@ -262,19 +260,19 @@ public:
 						vn[1] = v_vector[v1 + 2] - 1;
 						vn[2] = v_vector[v2 + 2] - 1;
 						mesh->add(
-							new Triangle(Triple<Vertex*>(vArray[v[0]], vArray[v[1]], vArray[v[2]]), Triple<Point2f*>(vtArray[vt[0]], vtArray[vt[1]], vtArray[vt[2]]), Triple<Vector3f*>(vnArray[vn[0]], vnArray[vn[1]], vnArray[vn[2]]), mat_ptr));
+							Triangle(Triple<Vertex*>(&vArray[v[0]], &vArray[v[1]], &vArray[v[2]]), Triple<Point2f*>(&vtArray[vt[0]], &vtArray[vt[1]], &vtArray[vt[2]]), Triple<Vector3f*>(&vnArray[vn[0]], &vnArray[vn[1]], &vnArray[vn[2]]), current_matr));
 					}
 				}
 				else if (lineResult.first == ParserInstruction::vn) {
-					vnArray.push_back(new Vector3f(lineResult.second[0], lineResult.second[1], lineResult.second[2], 0.0f));
+					vnArray.push_back(Vector3f(lineResult.second[0], lineResult.second[1], lineResult.second[2], 0.0f));
 				}
 				else if (lineResult.first == ParserInstruction::vt) {
-					vtArray.push_back(new Point2f(lineResult.second[0], lineResult.second[1]));
+					vtArray.push_back(Point2f(lineResult.second[0], lineResult.second[1]));
 				}
 				else if (lineResult.first == ParserInstruction::comment) {
 					if (textureFound) {
-						mesh->set_material(new lambertian(new image_texture(texture)));
-						mat_ptr = mesh->get_material();
+						AssetNode<rdxr_texture> imageTexture = assetFactor->createImageTexture(texture).to_texture();
+						current_matr = assetFactor->createLambertian(imageTexture).to_material();
 					}
 				}
 			}
@@ -294,8 +292,8 @@ private:
 		return true;
 	}
 
-	inline bool lineParse(const std::string& str, std::pair<ParserInstruction, base_list<float>>* out) {
-		std::vector<std::string> e;
+	inline bool lineParse(const std::string& str, std::pair<ParserInstruction, base_list<float>>* out, Mesh* mesh) {
+		base_list<std::string> e;
 		std::string temp;
 		int index = 0;
 
@@ -389,7 +387,7 @@ private:
 				out->first = itor->second;
 				break;
 			}
-			mat_ptr = mat_map->find(e[1])->second;
+			current_matr = mat_map->find(e[1])->second;
 			out->first = itor->second;
 			break;
 		case ParserInstruction::comment:
@@ -408,7 +406,7 @@ private:
 		return true;
 	}
 
-	inline bool vLineParse(const std::vector<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, base_list<float>>* out) {
+	inline bool vLineParse(const base_list<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, base_list<float>>* out) {
 		bool first = true;
 		int floatCount = 0;
 		for (const std::string& l : e) {
@@ -429,7 +427,7 @@ private:
 		return true;
 	}
 
-	inline bool fLineParse(const std::vector<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, base_list<float>>* out) {
+	inline bool fLineParse(const base_list<std::string>& e, const std::map<std::string, ParserInstruction>::iterator& itor, std::pair<ParserInstruction, base_list<float>>* out) {
 		bool first = true;
 		for (const std::string& l : e) {
 			if (first) {
@@ -465,10 +463,12 @@ private:
 
 	std::map<std::string, ParserInstruction> table;
 	MtlParser parser;
-	material* mat_ptr;
+	AssetNode<material> current_matr;
 	mtl_map* mat_map;
 	std::string objPath;
 	std::string texture;
 	bool mtlFound;
 	bool textureFound;
+	AssetFactor* assetFactor;
 };
+
