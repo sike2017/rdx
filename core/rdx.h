@@ -23,7 +23,7 @@ public:
 
 protected:
 	virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override {
-		hitable* world = spot();
+		hitable* world = cube_light();
 		//Vector3f lookfrom(278, 273, -800);
 		//Vector3f lookat(278, 273, 0);
 		Vector3f lookfrom(-1.0, 0, -12.4);

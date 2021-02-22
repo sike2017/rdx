@@ -1,8 +1,5 @@
-#pragma once
-#include <cuda_runtime.h>
-#include <iostream>
-#include <thread>
 #include "render.h"
+#include <iostream>
 #include "core/color.h"
 #include "core/camera.h"
 #include "core/rz_types.h"
@@ -141,7 +138,7 @@ namespace ra { // rdx cuda
         checkCudaErrors(cudaMalloc(&d_thread_pixel_nums, sizeof(size_t) * threads * blocks));
         renderKernel<<<blocks, threads, 0, stream0>>>(width, height, d_cam, d_pixels, d_scene, threads * blocks, ns, d_rand_state, d_thread_pixel_nums);
         long start = clock();
-        printf("get\n");
+        printf("start\n");
         size_t* d_all_finished_pixels;
         checkCudaErrors(cudaMalloc(&d_all_finished_pixels, sizeof(size_t)));
         size_t finished_pixels = 0;
@@ -161,4 +158,5 @@ namespace ra { // rdx cuda
         printf("kernel done\n");
         cudaMemcpy(host_pixels, d_pixels, 4 * width * height, cudaMemcpyDeviceToHost);
     }
+
 }

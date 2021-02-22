@@ -382,7 +382,7 @@ private:
 			out->first = itor->second;
 			break;
 		case ParserInstruction::usemtl:
-			if (mat_map == nullptr) {
+			if (mtlFound == false) {
 				// no .mtl file found
 				out->first = itor->second;
 				break;

@@ -116,6 +116,10 @@ public:
 		*_mesh = meshNode.data();
 		*size = meshNode.size();
 	}
+	void getHitable(AssetNode<hitable>** _hitable, size_t* size) {
+		*_hitable = hitableNode.data();
+		*size = hitableNode.size();
+	}
 
 private:
 	std::vector<AssetNode<rdxr_texture>> textureNode;
@@ -149,5 +153,6 @@ private:
 	}
 };
 
+__global__ void test(hitable** hitables, size_t size);
 void f();
 

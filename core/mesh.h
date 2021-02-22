@@ -161,19 +161,23 @@ public:
 		meshCopyDeviceToDevice
 	};
 
-	Mesh() {}
+	Mesh() {
+		trianglelist_size = 0;
+	}
 	~Mesh() {}
 
 	void add(const Triangle& tg) {
 		trianglelist.add(tg);
+		triangles_data = trianglelist.data();
+		trianglelist_size = trianglelist.size();
 	}
 
 	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		hit_record temp_record;
 		bool hit_anything = false;
 		double closest_so_far = t_max;
-		for (int index = 0; index < trianglelist.size(); index++) {
-			if (trianglelist[index].hit(r, t_min, closest_so_far, &temp_record)) {
+		for (int index = 0; index < trianglelist_size; index++) {
+			if (triangles_data[index].hit(r, t_min, closest_so_far, &temp_record)) {
 				hit_anything = true;
 				closest_so_far = temp_record.t;
 				*rec = temp_record;
@@ -218,6 +222,9 @@ public:
 	base_list<Vertex> vArray;
 	base_list<Point2f> vtArray;
 	base_list<Vector3f> vnArray;
+
+	size_t trianglelist_size;
+	Triangle* triangles_data;
 
 };
 typedef base_list<Mesh*> MeshList;

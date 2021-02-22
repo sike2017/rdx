@@ -7,8 +7,6 @@
 namespace ra { // rdx cuda
     __device__ uint32_t to_u(const Color& color);
 
-    __global__ void renderKernel(size_t width, size_t height, uint32_t* pixels, hitable* scene);
-
     class RenderCuda {
     public:
         RenderCuda() {}
@@ -16,7 +14,5 @@ namespace ra { // rdx cuda
         void render(size_t width, size_t height, uint32_t* host_pixels);
         int maxThreadsPerBlock;
         int multiProcessorCount;
-
-    private:
     };
 }

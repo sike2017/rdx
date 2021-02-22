@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <driver_types.h>
-
+#include <cuda_runtime_api.h>
 #include "math/monolith_math.h"
 #include "texture.h"
 #include "hitable.h"
