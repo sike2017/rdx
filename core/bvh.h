@@ -2,8 +2,9 @@
 #include "ray.h"
 #include "hitable.h"
 #include "rdx_rand.h"
+#include <time.h>
 
-__device__ int box_x_compare(const void* a, const void* b) {
+static __host__ __device__ int box_x_compare(const void* a, const void* b) {
 	aabb box_left, box_right;
 	hitable* ah = *(hitable**)a;
 	hitable* bh = *(hitable**)b;
@@ -18,7 +19,7 @@ __device__ int box_x_compare(const void* a, const void* b) {
 	}
 }
 
-__device__ int box_y_compare(const void* a, const void* b) {
+static __host__ __device__ int box_y_compare(const void* a, const void* b) {
 	aabb box_left, box_right;
 	hitable* ah = *(hitable**)a;
 	hitable* bh = *(hitable**)b;
@@ -33,7 +34,7 @@ __device__ int box_y_compare(const void* a, const void* b) {
 	}
 }
 
-__device__ int box_z_compare(const void* a, const void* b) {
+static __host__ __device__ int box_z_compare(const void* a, const void* b) {
 	aabb box_left, box_right;
 	hitable* ah = *(hitable**)a;
 	hitable* bh = *(hitable**)b;
@@ -51,8 +52,9 @@ __device__ int box_z_compare(const void* a, const void* b) {
 class bvh_node : public hitable {
 public:
 	bvh_node() {}
-	__device__ bvh_node(hitable** l, int n, float time0, float time1, curandState* state) {
-		int axis = static_cast<int>(3 * device_rand(state));
+	__host__ __device__ bvh_node(hitable** l, int n, float time0, float time1, curandState* state) {
+		rdx_srand();
+		int axis = static_cast<int>(3 * rdx_rand(state));
 		if (axis == 0) {
 			qsort(l, n, sizeof(hitable*), box_x_compare);
 		}
@@ -70,8 +72,8 @@ public:
 			right = l[1];
 		}
 		else {
-			left = new bvh_node(l, n / 2, time0, time1);
-			right = new bvh_node(l + n / 2, n - n / 2, time0, time1);
+			left = new bvh_node(l, n / 2, time0, time1, state);
+			right = new bvh_node(l + n / 2, n - n / 2, time0, time1, state);
 		}
 		aabb box_left, box_right;
 		if (!left->bounding_box(time0, time1, &box_left) || !right->bounding_box(time0, time1, &box_right)) {
@@ -79,7 +81,7 @@ public:
 		}
 		box = surrounding_box(box_left, box_right);
 	}
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
+	__host__ __device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
 		if (box.hit(r, t_min, t_max)) {
 			hit_record left_rec, right_rec;
 			bool hit_left = left->hit(r, t_min, t_max, &left_rec);
@@ -109,7 +111,7 @@ public:
 			return false;
 		}
 	}
-	__device__ virtual bool bounding_box(float t0, float t1, aabb* b) const {
+	__host__ __device__ virtual bool bounding_box(float t0, float t1, aabb* b) const {
 		*b = box;
 		return true;
 	}
@@ -117,4 +119,3 @@ public:
 	hitable* right;
 	aabb box;
 };
-

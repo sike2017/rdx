@@ -123,17 +123,11 @@
     <ClCompile Include="core\win_main.cpp">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="core\asset_manager.h">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="rdx_cuda\rdx_cuda.cpp">
       <Filter>rdx_cuda</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="core\asset_manager.cu">
-      <Filter>core</Filter>
-    </CudaCompile>
     <CudaCompile Include="rdx_cuda\render.cu">
       <Filter>rdx_cuda</Filter>
     </CudaCompile>

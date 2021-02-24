@@ -163,7 +163,6 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="core\asset_manager.h" />
     <ClCompile Include="rdx_cuda\rdx_cuda.cpp" />
     <ClInclude Include="core\bvh.h" />
     <ClInclude Include="core\camera.h" />
@@ -193,9 +192,6 @@
     <ClInclude Include="rdx_cuda\render.h" />
   </ItemGroup>
   <ItemGroup>
-    <CudaCompile Include="core\asset_manager.cu">
-      <FileType>Document</FileType>
-    </CudaCompile>
     <ClCompile Include="core\win_main.cpp" />
     <ClCompile Include="display\image_png.cpp" />
     <ClCompile Include="display\Painter.cpp" />

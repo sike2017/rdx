@@ -17,14 +17,14 @@ __host__ __device__ inline void barycentric(const Point2f& q, const Point2f& p0,
 class Triangle : public hitable {
 public:
 	__host__ __device__ Triangle() {}
-	__host__ __device__ Triangle(const Triple<Vertex*>& _v, const Triple<Point2f*>& _vt, const Triple<Vector3f*>& _vn, AssetNode<material> mp) { v = _v; vt = _vt; vn = _vn; matr = mp; }
+	__host__ __device__ Triangle(const Triple<Vertex*>& _v, const Triple<Point2f*>& _vt, const Triple<Vector3f*>& _vn, material* mp) { v = _v; vt = _vt; vn = _vn; matr = mp; }
 	__host__ __device__ ~Triangle() {
 		v[0] = v[1] = v[2] = nullptr;
 		vt[0] = vt[1] = vt[2] = nullptr;
 		vn[0] = vn[1] = vn[2] = nullptr;
 	}
 
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
+	__host__ __device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		Vector3f e0 = v[1]->p - v[0]->p;
 		Vector3f e1 = v[2]->p - v[0]->p;
 
@@ -55,7 +55,7 @@ public:
 			rec->t = t_float;
 			rec->p = r.point_at_parameter(t_float);
 			rec->normal = unit_vector(cross(v[1]->p - v[0]->p, v[2]->p - v[0]->p));
-			rec->mat_ptr = matr.asset_device;
+			rec->mat_ptr = matr;
 			Point3f barycentric_coordinate;
 			barycentric(rec->p, v[0]->p, v[1]->p, v[2]->p, &barycentric_coordinate);
 			float alpha = barycentric_coordinate[0];
@@ -68,7 +68,7 @@ public:
 		return false;
 	}
 
-	virtual bool bounding_box(float t0, float t1, aabb* box) const {
+	__host__ __device__ virtual bool bounding_box(float t0, float t1, aabb* box) const {
 		float minx = util::min(v[0]->p.x(), util::min(v[1]->p.x(), v[2]->p.x()));
 		float miny = util::min(v[0]->p.y(), util::min(v[1]->p.y(), v[2]->p.y()));
 		float minz = util::min(v[0]->p.z(), util::min(v[1]->p.z(), v[2]->p.z()));
@@ -83,8 +83,7 @@ public:
 	Triple<Vertex*> v;
 	Triple<Point2f*> vt;
 	Triple<Vector3f*> vn;
-	AssetNode<material> matr;
+	material* matr;
 };
 
 inline Vector3f computeNormal(const Point3f& p0, const Point3f& p1, const Point3f& p2) { return unit_vector(cross(p1 - p0, p2 - p0)); }
-

@@ -5,7 +5,7 @@ class hitable_list : public hitable {
 public:
 	__host__ __device__ hitable_list() {}
 	__host__ __device__ hitable_list(hitable** l, int n) { list = l; list_size = n; }
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
+	__host__ __device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		hit_record temp_rec;
 		bool hit_anything = false;
 		double closest_so_far = t_max;
@@ -18,7 +18,7 @@ public:
 		}
 		return hit_anything;
 	}
-	virtual bool bounding_box(float t0, float t1, aabb* box) const override {
+	__host__ __device__ virtual bool bounding_box(float t0, float t1, aabb* box) const override {
 		if (list_size < 1) return false;
 		aabb temp_box;
 		bool first_true = list[0]->bounding_box(t0, t1, &temp_box);

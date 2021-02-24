@@ -5,7 +5,7 @@
 
 class rdxr_texture {
 public:
-	__device__ virtual Color value(float u, float v, const Vector3f& p) const = 0;
+	__host__ __device__ virtual Color value(float u, float v, const Vector3f& p) const = 0;
 };
 
 class image_texture : public rdxr_texture {
@@ -16,7 +16,7 @@ public:
 	__host__ __device__ ~image_texture() {
 		image_png::free_image(&image);
 	}
-	__device__ virtual Color value(float u, float v, const Vector3f& p) const override {
+	__host__ __device__ virtual Color value(float u, float v, const Vector3f& p) const override {
 		int i = (u)*image.width;
 		int j = (1 - v) * image.height - 0.001;
 		if (i < 0) i = 0;
@@ -36,7 +36,7 @@ class solid_texture : public rdxr_texture {
 public:
 	__host__ __device__ solid_texture() {}
 	__host__ __device__ solid_texture(const Color& c) : color(c) {}
-	__device__ virtual Color value(float u, float v, const Vector3f& p) const {
+	__host__ __device__ virtual Color value(float u, float v, const Vector3f& p) const {
 		return color;
 	}
 	Color color;
@@ -46,7 +46,7 @@ class checker_texture : public rdxr_texture {
 public:
 	__host__ __device__ checker_texture() {}
 	__host__ __device__ checker_texture(rdxr_texture* t0, rdxr_texture* t1): even(t0), odd(t1) {}
-	__device__ virtual Color value(float u, float v, const Vector3f& p) const {
+	__host__ __device__ virtual Color value(float u, float v, const Vector3f& p) const {
 		float sines = sin(10 * p.x()) * sin(10 * p.y()) * sin(10 * p.z());
 		if (sines < 0) {
 			return odd->value(u, v, p);

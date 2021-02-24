@@ -172,7 +172,7 @@ public:
 		trianglelist_size = trianglelist.size();
 	}
 
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
+	__host__ __device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const override {
 		hit_record temp_record;
 		bool hit_anything = false;
 		double closest_so_far = t_max;
@@ -186,7 +186,7 @@ public:
 		return hit_anything;
 	}
 
-	virtual bool bounding_box(float t0, float t1, aabb* box) const override {
+	__host__ __device__ virtual bool bounding_box(float t0, float t1, aabb* box) const override {
 		float bl[3] = { INFINITY, INFINITY, INFINITY };
 		float ur[3] = { -INFINITY, -INFINITY, -INFINITY };
 		for (int index = 0; index < vArray.size(); index++) {

@@ -1,5 +1,4 @@
 #include "rdx_cuda.h"
-#include "render.h"
 
 RdxCuda::RENDER_STATUS RdxCuda::render(RENDER_COMMAND* renderCommand) {
     ra::RenderCuda renderCuda;
@@ -11,5 +10,15 @@ RdxCuda::RENDER_STATUS RdxCuda::render(RENDER_COMMAND* renderCommand) {
         setPixel(index % width(), index / width(), RGBA(p[0], p[1], p[2]));
     }
     update();
-    return RENDER_STATUS::CALL_STOP;
+    return RENDER_STATUS::CALL_STOP_SAVE_IMAGE;
 }
+
+
+
+
+
+
+
+
+
+

@@ -7,7 +7,7 @@ class sphere : public hitable {
 public:
 	__host__ __device__ sphere() {}
 	__host__ __device__ sphere(Point3f cen, float r, material* mp) : center(cen), radius(r), mat_ptr(mp) {}
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
+	__host__ __device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const {
 		Vector3f oc = r.origin() - center;
 		float a = dot(r.direction(), r.direction());
 		float b = dot(oc, r.direction());
@@ -35,7 +35,7 @@ public:
 		}
 		return false;
 	}
-	virtual bool bounding_box(float t0, float t1, aabb* box) const {
+	__host__ __device__ virtual bool bounding_box(float t0, float t1, aabb* box) const {
 		*box = aabb(center - Vector3f(radius, radius, radius), center + Vector3f(radius, radius, radius));
 		return true;
 	}
@@ -44,7 +44,7 @@ public:
 	material* mat_ptr;
 
 private:
-	__device__ void get_sphere_uv(const Vector3f& p, float* u, float* v) const {
+	__host__ __device__ void get_sphere_uv(const Vector3f& p, float* u, float* v) const {
 		float phi = atan2(p.z(), p.x());
 		float theta = asin(p.y());
 		*u = 1 - (phi + M_PI) / (2 * M_PI);

@@ -23,7 +23,7 @@ public:
 
 protected:
 	virtual RENDER_STATUS render(RENDER_COMMAND* renderCommand) override {
-		hitable* world = cube_light();
+		hitable* world = spot();
 		//Vector3f lookfrom(278, 273, -800);
 		//Vector3f lookat(278, 273, 0);
 		Vector3f lookfrom(-1.0, 0, -12.4);
@@ -48,8 +48,8 @@ protected:
 					y = index / width();
 					Color col(0, 0, 0);
 					for (int s = 0; s < ns; s++) {
-						float u = static_cast<float>(x + host_rand()) / static_cast<float>(width());
-						float v = static_cast<float>(y + host_rand()) / static_cast<float>(height());
+						float u = static_cast<float>(x + rdx_rand(nullptr)) / static_cast<float>(width());
+						float v = static_cast<float>(y + rdx_rand(nullptr)) / static_cast<float>(height());
 						//setPixel(x, y, RGBA(0, 162, 232));
 						curandState state;
 						Ray r = cam.get_ray(u, v, &state);
@@ -97,7 +97,7 @@ private:
 	Color color(const Ray& r, hitable* world, int depth) {
 		hit_record rec;
 
-		if (world->hit(r, 0.0f, FLT_MAX, &rec)) {
+		if (world->hit(r, 0.001f, FLT_MAX, &rec)) {
 			Ray scattered;
 			Vector3f attenuation;
 			Color emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);

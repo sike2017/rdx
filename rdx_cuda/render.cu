@@ -76,8 +76,8 @@ namespace ra { // rdx cuda
             Color col(0, 0, 0);
             curandState* localState = &rand_state[pixelIndex];
             for (int s = 0; s < ns; s++) {
-                float u = static_cast<float>(x + device_rand(localState)) / static_cast<float>(width);
-                float v = static_cast<float>(y + device_rand(localState)) / static_cast<float>(height);
+                float u = static_cast<float>(x + rdx_rand(localState)) / static_cast<float>(width);
+                float v = static_cast<float>(y + rdx_rand(localState)) / static_cast<float>(height);
                 Ray r = (*d_cam)->get_ray(u, v, localState);
                 col += color(r, scene, localState);
             }

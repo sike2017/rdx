@@ -21,7 +21,7 @@ public:
 	__host__ __device__ Vector3f min() const { return _min; }
 	__host__ __device__ Vector3f max() const { return _max; }
 
-	__device__ bool hit(const Ray& r, float tmin, float tmax) const {
+	__host__ __device__ bool hit(const Ray& r, float tmin, float tmax) const {
 		for (int a = 0; a < 3; a++) {
 			float invD = 1.0f / r.direction()[a];
 			float t0 = (min()[a] - r.origin()[a]) * invD;
@@ -44,8 +44,8 @@ public:
 
 class hitable {
 public:
-	__device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const = 0;
-	virtual bool bounding_box(float t0, float t1, aabb* box) const = 0;
+	__host__ __device__ virtual bool hit(const Ray& r, float t_min, float t_max, hit_record* rec) const = 0;
+	__host__ __device__ virtual bool bounding_box(float t0, float t1, aabb* box) const = 0;
 };
 
 inline aabb surrounding_box(aabb box0, aabb box1) {

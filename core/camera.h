@@ -18,7 +18,7 @@ public:
 		horizontal = 2 * half_width * focus_dist * u;
 		vertical = 2 * half_height * focus_dist * v;
 	}
-	__device__ Ray get_ray(float s, float t, curandState* state) const {
+	__host__ __device__ Ray get_ray(float s, float t, curandState* state) const {
 		Vector3f rd = lens_radius * random_in_unit_disk(state);
 		Vector3f offset = u * rd.x() + v * rd.y();
 		return Ray(origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset);
@@ -32,10 +32,10 @@ public:
 	float lens_radius;
 
 private:
-	__device__ Vector3f random_in_unit_disk(curandState* state) const {
+	__host__ __device__ Vector3f random_in_unit_disk(curandState* state) const {
 		Vector3f p;
 		do {
-			p = 2.0 * Vector3f(device_rand(state), device_rand(state), 0) - Vector3f(1, 1, 0);
+			p = 2.0 * Vector3f(rdx_rand(state), rdx_rand(state), 0) - Vector3f(1, 1, 0);
 		} while (dot(p, p) >= 1.0);
 		return p;
 	}

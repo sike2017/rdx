@@ -4,10 +4,10 @@
 #include <fstream>
 #include <sstream>
 #include <map>
-#include "core/asset_manager.h"
+#include "mesh.h"
 
-typedef std::pair<std::string, AssetNode<material>> mtl_pair;
-typedef std::map<std::string, AssetNode<material>> mtl_map;
+typedef std::pair<std::string, material*> mtl_pair;
+typedef std::map<std::string, material*> mtl_map;
 
 class FileParser
 {
@@ -42,7 +42,7 @@ protected:
 class MtlParser : public FileParser
 {
 public:
-	MtlParser(AssetFactor* _factor) { assetFactor = _factor; }
+	MtlParser() {}
 	~MtlParser() {}
 
 	virtual bool parse(const std::string& path, mtl_map** _list) {
@@ -99,16 +99,14 @@ private:
 				}
 				temp = list[index + 2];
 				if (temp == "light") {
-					current_material.clear();
 					rdx_light = convertStringToNumber<float>(list[index + 3]);
-					current_material = assetFactor->createDiffuseLight(assetFactor->createSolidTexture(Color(1.0, 1.0, 1.0) * rdx_light).to_texture()).to_material();
-					pout->find(matr_name)->second = assetFactor->createDiffuseLight(assetFactor->createSolidTexture(Color(1.0, 1.0, 1.0) * rdx_light).to_texture()).to_material();
+					pout->find(matr_name)->second = new diffuse_light(new solid_texture(Color(1.0, 1.0, 1.0) * rdx_light));
 					return true;
 				}
 			}
 			else if (strInList == "newmtl") {
 				createMode = true;
-				current_material = assetFactor->createLambertian(assetFactor->createSolidTexture(Color(0.7, 0.7, 0.7)).to_texture()).to_material();
+				material* current_material = new lambertian(new solid_texture(Color(0.7, 0.7, 0.7)));
 				pout->insert(mtl_pair(list[index + 1], current_material));
 				matr_name = list[index + 1];
 			}
@@ -153,14 +151,12 @@ private:
 
 	bool createMode = false;
 	std::string matr_name;
-	AssetNode<material> current_material;
-	AssetFactor* assetFactor;
 };
 
 class ObjParser : public FileParser
 {
 public:
-	ObjParser(AssetFactor* _asset_factor) : assetFactor(_asset_factor), parser(_asset_factor) {
+	ObjParser() {
 		table.insert(std::pair<std::string, ParserInstruction>("v", ParserInstruction::v));
 		table.insert(std::pair<std::string, ParserInstruction>("f", ParserInstruction::f));
 		table.insert(std::pair<std::string, ParserInstruction>("vt", ParserInstruction::vt));
@@ -190,8 +186,8 @@ public:
 			return false;
 		}
 		std::string lineStr;
-		AssetNode<rdxr_texture> solidTexture = assetFactor->createSolidTexture(Color(0.7, 0.7, 0.7)).to_texture();
-		current_matr = assetFactor->createLambertian(solidTexture).to_material();
+		rdxr_texture* solidTexture = new solid_texture(Color(0.7, 0.7, 0.7));
+		current_matr = new lambertian(solidTexture);
 		base_list<Vertex>& vArray = mesh->vArray;
 		base_list<Point2f>& vtArray = mesh->vtArray;
 		base_list<Vector3f>& vnArray = mesh->vnArray;
@@ -271,8 +267,8 @@ public:
 				}
 				else if (lineResult.first == ParserInstruction::comment) {
 					if (textureFound) {
-						AssetNode<rdxr_texture> imageTexture = assetFactor->createImageTexture(texture).to_texture();
-						current_matr = assetFactor->createLambertian(imageTexture).to_material();
+						rdxr_texture* imageTexture = new image_texture(texture);
+						current_matr = new lambertian(imageTexture);
 					}
 				}
 			}
@@ -463,12 +459,11 @@ private:
 
 	std::map<std::string, ParserInstruction> table;
 	MtlParser parser;
-	AssetNode<material> current_matr;
+	material* current_matr;
 	mtl_map* mat_map;
 	std::string objPath;
 	std::string texture;
 	bool mtlFound;
 	bool textureFound;
-	AssetFactor* assetFactor;
 };
 
