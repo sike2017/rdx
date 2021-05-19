@@ -120,11 +120,11 @@
     <ClCompile Include="math\monolith_math.cpp">
       <Filter>math</Filter>
     </ClCompile>
-    <ClCompile Include="core\win_main.cpp">
-      <Filter>core</Filter>
-    </ClCompile>
     <ClCompile Include="rdx_cuda\rdx_cuda.cpp">
       <Filter>rdx_cuda</Filter>
+    </ClCompile>
+    <ClCompile Include="core\main.cpp">
+      <Filter>core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

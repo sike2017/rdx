@@ -9,3 +9,8 @@ Something else:
   - multi threads support on cpu render
   - obj model format support on cpu render
   - CUDA acceleration for sphere scene
+
+  ![avator](GPUScene.png)
+  ![avator](image.png)
+  ![avator](light.png)
+  ![avator](spot.png)

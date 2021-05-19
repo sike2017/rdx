@@ -192,7 +192,7 @@
     <ClInclude Include="rdx_cuda\render.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="core\win_main.cpp" />
+    <ClCompile Include="core\main.cpp" />
     <ClCompile Include="display\image_png.cpp" />
     <ClCompile Include="display\Painter.cpp" />
     <ClCompile Include="display\WindowDisplayer.cpp" />
